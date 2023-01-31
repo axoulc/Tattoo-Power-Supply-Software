@@ -7,7 +7,9 @@ CFILES += api.c
 
 # TODO - you will need to edit these two lines!
 DEVICE=stm32f103c8t6
-OOCD_FILE = board/stlinkv3.cfg
+OOCD_INTERFACE	?= stlink
+OOCD_TARGET	?= stm32f1x
+#STLINK_PORT	?= :4242
 
 # You shouldn't have to edit anything below here.
 VPATH += $(SHARED_DIR)
