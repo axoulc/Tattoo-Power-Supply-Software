@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "rcc.h": "c",
+        "adc.h": "c",
+        "memorymap.h": "c"
+    }
+}
