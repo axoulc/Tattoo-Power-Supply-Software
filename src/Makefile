@@ -3,7 +3,7 @@ BUILD_DIR = bin
 
 SHARED_DIR = ../lib
 CFILES = main.c
-CFILES += api.c
+CFILES += stusb4500.c
 
 # TODO - you will need to edit these two lines!
 DEVICE=stm32f103c8t6

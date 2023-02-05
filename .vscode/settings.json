@@ -2,6 +2,11 @@
     "files.associations": {
         "rcc.h": "c",
         "adc.h": "c",
-        "memorymap.h": "c"
+        "memorymap.h": "c",
+        "usb_pd_core.h": "c",
+        "i2c.h": "c",
+        "i2c_common_v1.h": "c",
+        "common.h": "c",
+        "type_traits": "c"
     }
 }
