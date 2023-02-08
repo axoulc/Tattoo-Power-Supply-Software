@@ -7,6 +7,13 @@
         "i2c.h": "c",
         "i2c_common_v1.h": "c",
         "common.h": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "stdint.h": "c",
+        "usart.h": "c",
+        "peripherals.h": "c",
+        "cstdio": "c",
+        "gpio.h": "c",
+        "timer.h": "c",
+        "timer_common_all.h": "c"
     }
 }
