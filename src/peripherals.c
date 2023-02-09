@@ -48,9 +48,8 @@ void configure_encoder(void) {
     gpio_set_mode(Encod_SW_Port, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, Encod_SW_Pin);
 
     // Timer 1
-    timer_reset(TIM1);
     timer_set_period(TIM1, 0xFFFF);
-    timer_slave_set_mode(TIM1, TIM_SMCR_SMS_EM3); // encoder TIM_SMCR_SMS_EM3
+    timer_slave_set_mode(TIM1, TIM_SMCR_SMS_EM3); // Encoder Mode 3
     timer_ic_set_input(TIM1, TIM_IC1, TIM_IC_IN_TI1);
     timer_ic_set_input(TIM1, TIM_IC2, TIM_IC_IN_TI2);
     timer_enable_counter(TIM1);
