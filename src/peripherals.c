@@ -1,5 +1,3 @@
-#include "peripherals.h"
-
 #include <errno.h>
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/stm32/adc.h>
@@ -11,8 +9,11 @@
 #include <libopencm3/stm32/timer.h>
 #include <stdio.h>
 
+#include "peripherals.h"
+
 void configure_clock(void) {
     rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
+    //rcc_set_usbpre(RCC_CFGR_USBPRE_PLL_CLK_DIV1_5);
     rcc_periph_clock_enable(RCC_GPIOA);
     rcc_periph_clock_enable(RCC_GPIOB);
     rcc_periph_clock_enable(RCC_AFIO);
@@ -20,24 +21,41 @@ void configure_clock(void) {
     rcc_periph_clock_enable(RCC_USART2);
     rcc_periph_clock_enable(RCC_I2C1);
     rcc_periph_clock_enable(RCC_ADC1);
+    rcc_periph_clock_enable(RCC_TIM1);
 }
 
 void configure_gpio(void) {
     // PA8: SW1
     // PA9: SW2
     // PA15: USB_DFU
-    gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO8 | GPIO9);
-    gpio_set_mode(GPIOA, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, GPIO15);
-    gpio_clear(GPIOA, GPIO8);
-    gpio_clear(GPIOA, GPIO9);
+    gpio_set_mode(SW1_Port, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, SW1_Pin);
+    gpio_set_mode(SW2_Port, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, SW2_Pin);
+    gpio_set_mode(USB_DFU_Port, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, USB_DFU_Pin);
+    gpio_clear(SW1_Port, SW1_Pin);
+    gpio_clear(SW2_Port, SW2_Pin);
 
     // PB0: EN_SMPS
-    // PB13: Encod.DT
-    // PB14: Encod.CLK
-    // PB15: Encod.SW
-    gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_OPENDRAIN, GPIO0);
-    gpio_set_mode(GPIOB, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, GPIO13 | GPIO14 | GPIO15);
-    gpio_clear(GPIOB, GPIO0);
+    gpio_set_mode(EN_SMPS_Port, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_OPENDRAIN, EN_SMPS_Pin);
+    gpio_clear(EN_SMPS_Port, EN_SMPS_Pin);
+}
+
+void configure_encoder(void) {
+    // PA8 : DT
+    // PA9 : CLK
+    // PA10: SW
+    gpio_set_mode(Encod_DT_Port, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, Encod_DT_Pin);
+    gpio_set_mode(Encod_CLK_Port, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, Encod_CLK_Pin);
+    gpio_set_mode(Encod_SW_Port, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, Encod_SW_Pin);
+
+    // Timer 1
+    timer_reset(TIM1);
+    timer_set_period(TIM1, 0xFFFF);
+    timer_slave_set_mode(TIM1, TIM_SMCR_SMS_EM3); // encoder TIM_SMCR_SMS_EM3
+    timer_ic_set_input(TIM1, TIM_IC1, TIM_IC_IN_TI1);
+    timer_ic_set_input(TIM1, TIM_IC2, TIM_IC_IN_TI2);
+    timer_enable_counter(TIM1);
+
+    //int motor_pos = timer_get_count(TIM3);
 }
 
 void configure_spi(void) {

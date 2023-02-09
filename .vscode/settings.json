@@ -14,6 +14,8 @@
         "cstdio": "c",
         "gpio.h": "c",
         "timer.h": "c",
-        "timer_common_all.h": "c"
+        "timer_common_all.h": "c",
+        "stdio.h": "c",
+        "spi.h": "c"
     }
 }
