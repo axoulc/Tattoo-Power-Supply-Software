@@ -3,7 +3,8 @@
         {
             "name": "gcc",
             "includePath": [
-                "${workspaceFolder}/libopencm3/include"
+                "${workspaceFolder}/libopencm3/include",
+                "${workspaceFolder}/inc"
             ],
             "defines": [
                 "STM32F1"
