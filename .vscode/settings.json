@@ -17,5 +17,6 @@
         "timer_common_all.h": "c",
         "stdio.h": "c",
         "spi.h": "c"
-    }
+    },
+    "cmake.configureOnOpen": false
 }
