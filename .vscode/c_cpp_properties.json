@@ -4,7 +4,8 @@
             "name": "gcc",
             "includePath": [
                 "${workspaceFolder}/libopencm3/include",
-                "${workspaceFolder}/inc"
+                "${workspaceFolder}/inc",
+                "${workspaceFolder}/FreeRTOS/include"
             ],
             "defines": [
                 "STM32F1"

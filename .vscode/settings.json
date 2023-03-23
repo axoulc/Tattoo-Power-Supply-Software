@@ -16,7 +16,9 @@
         "timer.h": "c",
         "timer_common_all.h": "c",
         "stdio.h": "c",
-        "spi.h": "c"
+        "spi.h": "c",
+        "freertosconfig.h": "c",
+        "freertos.h": "c"
     },
     "cmake.configureOnOpen": false
 }
