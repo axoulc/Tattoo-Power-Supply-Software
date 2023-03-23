@@ -29,6 +29,20 @@
 #define Encod_SW_Port   GPIOA
 #define Encod_SW_Pin    GPIO10
 
+// OLED GPIO
+#define OLED_DC_Port    GPIOB
+#define OLED_DC_Pin     GPIO8
+#define OLED_RST_Port   GPIOB
+#define OLED_RST_Pin    GPIO9
+
+// Switch & LED GPIO
+#define Footswitch_Port GPIOB
+#define Footswitch_Pin  GPIO10
+#define Handswitch_Port GPIOB
+#define Handswitch_Pin  GPIO11
+#define LED_Port        GPIOB
+#define LED_Pin         GPIO12
+
 void configure_clock(void);
 void configure_gpio(void);
 void configure_encoder(void);
