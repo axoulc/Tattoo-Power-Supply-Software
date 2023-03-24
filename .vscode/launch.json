@@ -5,8 +5,8 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "cwd": "${workspaceRoot}",
-            "executable": "./src/tattoo_power_supply.elf",
+            "cwd": "${workspaceRoot}/src",
+            "executable": ".tattoo_power_supply.elf",
             "name": "Debug with OpenOCD",
             "request": "launch",
             "type": "cortex-debug",
@@ -19,6 +19,5 @@
             "runToEntryPoint": "main",
             "showDevDebugOutput": "none"
         }
-
     ]
 }

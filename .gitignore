@@ -1,4 +1,6 @@
 bin/
+*.d
+*.o
 *.elf
 *.bin
 generated.*.ld

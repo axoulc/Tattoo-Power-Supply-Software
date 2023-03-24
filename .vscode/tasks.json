@@ -1,0 +1,39 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Compile libopencm3",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "-C",
+                "libopencm3"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "label": "Compile whole project",
+            "type": "shell",
+            "command": "make",
+            "options": {
+                "cwd": "${workspaceFolder}/src"
+            }
+        },
+        {
+            "label": "Flash",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "V=1",
+                "flash"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/src"
+            }
+        }
+    ]
+}
