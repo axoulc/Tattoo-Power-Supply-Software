@@ -1,3 +1,5 @@
+#include "peripherals.h"
+
 #include <errno.h>
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/stm32/adc.h>
@@ -5,15 +7,13 @@
 #include <libopencm3/stm32/i2c.h>
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/spi.h>
-#include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/timer.h>
+#include <libopencm3/stm32/usart.h>
 #include <stdio.h>
-
-#include "peripherals.h"
 
 void configure_clock(void) {
     rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
-    //rcc_set_usbpre(RCC_CFGR_USBPRE_PLL_CLK_DIV1_5);
+    // rcc_set_usbpre(RCC_CFGR_USBPRE_PLL_CLK_DIV1_5);
     rcc_periph_clock_enable(RCC_GPIOA);
     rcc_periph_clock_enable(RCC_GPIOB);
     rcc_periph_clock_enable(RCC_AFIO);
@@ -63,12 +63,14 @@ void configure_encoder(void) {
 
     // Timer 1
     timer_set_period(TIM1, 0xFFFF);
-    timer_slave_set_mode(TIM1, TIM_SMCR_SMS_EM3); // Encoder Mode 3
+    timer_slave_set_mode(TIM1, TIM_SMCR_SMS_EM3);  // Encoder Mode 3
     timer_ic_set_input(TIM1, TIM_IC1, TIM_IC_IN_TI1);
     timer_ic_set_input(TIM1, TIM_IC2, TIM_IC_IN_TI2);
     timer_enable_counter(TIM1);
+}
 
-    //int motor_pos = timer_get_count(TIM3);
+uint32_t get_encoder_count(void) {
+    return timer_get_counter(TIM1);
 }
 
 void configure_spi(void) {
@@ -132,8 +134,10 @@ void configure_i2c(void) {
 }
 
 void configure_adc(void) {
-    gpio_set_mode(GPIOA, GPIO_MODE_INPUT, GPIO_CNF_INPUT_ANALOG, GPIO0);
-    gpio_set_mode(GPIOA, GPIO_MODE_INPUT, GPIO_CNF_INPUT_ANALOG, GPIO1);
+    // PA0: ADC1_IN0
+    // PA1: ADC1_IN1
+    gpio_set_mode(Analog1_Port, GPIO_MODE_INPUT, GPIO_CNF_INPUT_ANALOG, Analog1_Pin);
+    gpio_set_mode(Analog2_Port, GPIO_MODE_INPUT, GPIO_CNF_INPUT_ANALOG, Analog2_Pin);
 
     adc_power_off(ADC1);
     adc_disable_scan_mode(ADC1);

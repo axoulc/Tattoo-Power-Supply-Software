@@ -6,7 +6,7 @@
     "configurations": [
         {
             "cwd": "${workspaceRoot}/src",
-            "executable": ".tattoo_power_supply.elf",
+            "executable": "tattoo_power_supply.elf",
             "name": "Debug with OpenOCD",
             "request": "launch",
             "type": "cortex-debug",

@@ -46,6 +46,7 @@
 void configure_clock(void);
 void configure_gpio(void);
 void configure_encoder(void);
+uint32_t get_encoder_count(void);
 void configure_spi(void);
 void configure_usart(void);
 int _write(int file, char *ptr, int len);
