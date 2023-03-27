@@ -6,6 +6,9 @@
 #include "peripherals.h"
 #include "task.h"
 
+#include <libopencm3/stm32/i2c.h>
+ #include "DACx3202.h"
+
 void vTaskCode(void *pvParameters);
 
 TaskHandle_t xHandle = NULL;
@@ -19,9 +22,12 @@ int main(void) {
     configure_i2c();
     configure_adc();
 
-    xTaskCreate(vTaskCode, "NAME", 256, (void *)1, tskIDLE_PRIORITY + 1, &xHandle);
+    //xTaskCreate(vTaskCode, "NAME", 256, (void *)1, tskIDLE_PRIORITY + 1, &xHandle);
 
-    vTaskStartScheduler();
+    //vTaskStartScheduler();
+    uint8_t tx = DACX3202_REG_GENERAL_STATUS;
+    uint8_t rx = 0;
+    i2c_transfer7(I2C1, DACX3202_7B_ADDR, &tx, 1, &rx, 1);
 
     while (1) {
         __asm__("nop");

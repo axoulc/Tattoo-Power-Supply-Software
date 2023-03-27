@@ -126,10 +126,12 @@ void configure_i2c(void) {
 
     /* Setup I2C parameters. */
     i2c_peripheral_disable(I2C1);
-    i2c_set_clock_frequency(I2C1, 36);
-    i2c_set_fast_mode(I2C1);
-    i2c_set_ccr(I2C1, 0x1e);
-    i2c_set_trise(I2C1, 0x0b);
+    //i2c_set_clock_frequency(I2C1, 36);
+    //i2c_set_fast_mode(I2C1);
+    //i2c_set_standard_mode(I2C1);
+    //i2c_set_ccr(I2C1, 0x1e);
+    //i2c_set_trise(I2C1, 0x0b);
+    i2c_set_speed(I2C1, i2c_speed_sm_100k, 36);
     i2c_peripheral_enable(I2C1);
 }
 
