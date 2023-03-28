@@ -11,6 +11,17 @@
 
 void vTaskCode(void *pvParameters);
 
+
+uint8_t read_i2c(uint8_t addr, uint8_t reg, uint8_t *buffer, uint8_t len);
+uint8_t write_i2c(uint8_t addr, uint8_t reg, uint8_t *buffer, uint8_t len);
+
+dacx3202_t dacx3202 = {
+    .addr = DACX3202_7B_ADDR(0x00),
+    .i2c_read = read_i2c,
+    .i2c_write = write_i2c,
+    .vref = 3.3
+};
+
 TaskHandle_t xHandle = NULL;
 
 int main(void) {
@@ -27,10 +38,15 @@ int main(void) {
     //vTaskStartScheduler();
 
     // Test DACX3202
-    uint8_t tx = DACX3202_REG_GENERAL_STATUS;
-    uint8_t rx = 0;
-    i2c_transfer7(I2C1, DACX3202_7B_ADDR, &tx, 1, &rx, 1);
-
+    dacx3202_init(&dacx3202);
+    dacx3202_power_up(&dacx3202, DACX3202_DAC_0);
+    dacx3202_power_up(&dacx3202, DACX3202_DAC_1);
+    dacx3202_set_value(&dacx3202, DACX3202_DAC_0, 1.0);
+    dacx3202_set_value(&dacx3202, DACX3202_DAC_1, 1.0);
+    dacx3202_set_value(&dacx3202, DACX3202_DAC_0, 2.0);
+    dacx3202_set_value(&dacx3202, DACX3202_DAC_1, 2.0);
+    dacx3202_set_value(&dacx3202, DACX3202_DAC_0, 3.0);
+    dacx3202_set_value(&dacx3202, DACX3202_DAC_1, 3.0);
     while (1) {
         __asm__("nop");
     }
@@ -48,4 +64,20 @@ void vTaskCode(void *pvParameters) {
         }
         vTaskDelay(pdMS_TO_TICKS(10));
     }
+}
+
+uint8_t read_i2c(uint8_t addr, uint8_t reg, uint8_t *buffer, uint8_t len) {
+    uint8_t tx = reg;
+    i2c_transfer7(I2C1, addr, &tx, 1, buffer, len);
+    return 0;
+}
+
+uint8_t write_i2c(uint8_t addr, uint8_t reg, uint8_t *buffer, uint8_t len) {
+    uint8_t tx[3] = { 0 };
+    tx[0] = reg;
+    for (int i = 0; i < len; i++) {
+        tx[i + 1] = buffer[i];
+    }
+    i2c_transfer7(I2C1, addr, tx, len + 1, NULL, 0);
+    return 0;
 }
