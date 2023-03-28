@@ -42,7 +42,8 @@ void configure_gpio(void) {
     gpio_set_mode(LED_Port, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, LED_Pin);
     gpio_set_mode(OLED_DC_Port, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, OLED_DC_Pin);
     gpio_set_mode(OLED_RST_Port, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, OLED_RST_Pin);
-    gpio_clear(EN_SMPS_Port, EN_SMPS_Pin);
+    
+    gpio_set(EN_SMPS_Port, EN_SMPS_Pin);
     gpio_clear(LED_Port, LED_Pin);
     gpio_clear(OLED_DC_Port, OLED_DC_Pin);
     gpio_clear(OLED_RST_Port, OLED_RST_Pin);

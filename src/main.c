@@ -41,12 +41,14 @@ int main(void) {
     dacx3202_init(&dacx3202);
     dacx3202_power_up(&dacx3202, DACX3202_DAC_0);
     dacx3202_power_up(&dacx3202, DACX3202_DAC_1);
-    dacx3202_set_value(&dacx3202, DACX3202_DAC_0, 1.0);
-    dacx3202_set_value(&dacx3202, DACX3202_DAC_1, 1.0);
     dacx3202_set_value(&dacx3202, DACX3202_DAC_0, 2.0);
     dacx3202_set_value(&dacx3202, DACX3202_DAC_1, 2.0);
-    dacx3202_set_value(&dacx3202, DACX3202_DAC_0, 3.0);
-    dacx3202_set_value(&dacx3202, DACX3202_DAC_1, 3.0);
+
+    gpio_clear(EN_SMPS_Port, EN_SMPS_Pin);
+
+    dacx3202_set_value(&dacx3202, DACX3202_DAC_0, 0.5);
+    dacx3202_set_value(&dacx3202, DACX3202_DAC_1, 0.5);
+    
     while (1) {
         __asm__("nop");
     }
