@@ -25,6 +25,8 @@ int main(void) {
     //xTaskCreate(vTaskCode, "NAME", 256, (void *)1, tskIDLE_PRIORITY + 1, &xHandle);
 
     //vTaskStartScheduler();
+
+    // Test DACX3202
     uint8_t tx = DACX3202_REG_GENERAL_STATUS;
     uint8_t rx = 0;
     i2c_transfer7(I2C1, DACX3202_7B_ADDR, &tx, 1, &rx, 1);

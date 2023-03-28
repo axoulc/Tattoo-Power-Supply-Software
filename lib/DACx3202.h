@@ -1,8 +1,9 @@
 #ifndef DACX3202_H
 #define DACX3202_H
 
-#define DACX3202_A0      0x00
-#define DACX3202_7B_ADDR ( 0x48 | (DACX3202_A0 & 0x03) )
+#include <stdint.h>
+
+#define DACX3202_7B_ADDR(DACX3202_A0) ( 0x48 | (DACX3202_A0 & 0x03) )
 
 #define DACX3202_REG_NOP                    0x00
 #define DACX3202_REG_DAC_1_MARGIN_HIGH      0x01
@@ -30,5 +31,17 @@
 #define DACX3202_REG_SRAM_CONFIG            0x2B
 #define DACX3202_REG_SRAM_DATA              0x2C
 #define DACX3202_REG_BROADCAST_CONFIG       0x50
+
+typedef uint8_t (*dacx3202_i2c_write)(uint8_t addr, uint16_t reg, uint8_t *data_w, uint16_t len);
+typedef uint8_t (*dacx3202_i2c_read)(uint8_t addr, uint16_t reg, uint8_t *data_r, uint16_t len);
+
+typedef struct {
+    dacx3202_i2c_write i2c_write;
+    dacx3202_i2c_read i2c_read;
+
+    uint8_t addr;
+} dacx3202_t;
+
+
 
 #endif
