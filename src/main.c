@@ -38,6 +38,7 @@ int main(void) {
     //vTaskStartScheduler();
 
     // Test DACX3202
+    /*
     dacx3202_init(&dacx3202);
     dacx3202_power_up(&dacx3202, DACX3202_DAC_0);
     dacx3202_power_up(&dacx3202, DACX3202_DAC_1);
@@ -48,7 +49,18 @@ int main(void) {
 
     dacx3202_set_value(&dacx3202, DACX3202_DAC_0, 0.5);
     dacx3202_set_value(&dacx3202, DACX3202_DAC_1, 0.5);
+
+    gpio_clear(SW1_Port, SW1_Pin);
+    gpio_clear(SW2_Port, SW2_Pin);
+
+    gpio_set(SW1_Port, SW1_Pin);
+    gpio_set(SW2_Port, SW2_Pin);
+
+
+    gpio_clear(SW1_Port, SW1_Pin);
+    gpio_clear(SW2_Port, SW2_Pin);
     
+    */
     while (1) {
         __asm__("nop");
     }
