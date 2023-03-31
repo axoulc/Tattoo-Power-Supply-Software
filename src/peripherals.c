@@ -25,8 +25,8 @@ void configure_clock(void) {
 }
 
 void configure_gpio(void) {
-    // PA8: SW1
-    // PA9: SW2
+    // PB13: SW1
+    // PB14: SW2
     // PA15: USB_DFU
     gpio_set_mode(SW1_Port, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, SW1_Pin);
     gpio_set_mode(SW2_Port, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, SW2_Pin);
