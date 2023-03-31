@@ -62,6 +62,7 @@ typedef struct {
 
 uint8_t dacx3202_init(dacx3202_t *dacx3202);
 void dacx3202_power_up(dacx3202_t *dacx3202, dacx3202_dac_t channel);
-void dacx3202_set_value(dacx3202_t *dacx3202, dacx3202_dac_t channel, float voltage);
+void dacx3202_set_value(dacx3202_t *dacx3202, dacx3202_dac_t channel, uint16_t value);
+void dacx3202_set_voltage(dacx3202_t *dacx3202, dacx3202_dac_t channel, float voltage);
 
 #endif
