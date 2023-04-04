@@ -21,11 +21,12 @@ TGT_CXXFLAGS	+= -I$(FREERTOS_HEADERS)
 
 CFILES = main.c
 CFILES += peripherals.c
+CFILES += display.c
 CFILES += stusb4500.c
 CFILES += DACx3202.c
 
 CFILES +=$(FREERTOS_SRC)/portable/GCC/ARM_CM3/port.c  $(FREERTOS_SRC)/tasks.c  $(FREERTOS_SRC)/list.c $(FREERTOS_SRC)/queue.c $(FREERTOS_SRC)/portable/MemMang/heap_2.c 
-CFILES += $(wildcard ../u8g2/csrc/u8g2*.c) $(U8G2_HEADERS)/mui_u8g2.c $(U8G2_HEADERS)/mui.c $(U8G2_HEADERS)/mui_u8g2.c 
+CFILES += $(wildcard ../u8g2/csrc/*.c)
 # TODO - you will need to edit these two lines!
 DEVICE=stm32f103c8t6
 OOCD_INTERFACE	?= stlink

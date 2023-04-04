@@ -7,7 +7,8 @@
 #include "task.h"
 
 #include <libopencm3/stm32/i2c.h>
- #include "DACx3202.h"
+#include "display.h"
+#include "DACx3202.h"
 
 void vTaskCode(void *pvParameters);
 
@@ -33,6 +34,8 @@ int main(void) {
     configure_i2c();
     configure_adc();
 
+    display_init_task();
+
     //xTaskCreate(vTaskCode, "NAME", 256, (void *)1, tskIDLE_PRIORITY + 1, &xHandle);
 
     //vTaskStartScheduler();
@@ -49,7 +52,7 @@ int main(void) {
 
     dacx3202_set_value(&dacx3202, DACX3202_DAC_0, 0.5);
     dacx3202_set_value(&dacx3202, DACX3202_DAC_1, 0.5);
-    
+    */
     while (1) {
         __asm__("nop");
     }

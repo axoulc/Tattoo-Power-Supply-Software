@@ -5,7 +5,8 @@
             "includePath": [
                 "${workspaceFolder}/libopencm3/include",
                 "${workspaceFolder}/inc",
-                "${workspaceFolder}/FreeRTOS/include"
+                "${workspaceFolder}/FreeRTOS/include",
+                "${workspaceFolder}/u8g2/csrc"
             ],
             "defines": [
                 "STM32F1"
