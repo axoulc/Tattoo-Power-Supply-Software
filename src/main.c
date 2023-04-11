@@ -33,26 +33,31 @@ int main(void) {
     configure_usart();
     configure_i2c();
     configure_adc();
-
+    
     display_init_task();
 
     //xTaskCreate(vTaskCode, "NAME", 256, (void *)1, tskIDLE_PRIORITY + 1, &xHandle);
 
-    //vTaskStartScheduler();
+    vTaskStartScheduler();
 
     // Test DACX3202
     /*
     dacx3202_init(&dacx3202);
     dacx3202_power_up(&dacx3202, DACX3202_DAC_0);
     dacx3202_power_up(&dacx3202, DACX3202_DAC_1);
-    dacx3202_set_voltage(&dacx3202, DACX3202_DAC_0, 2.0);
-    dacx3202_set_voltage(&dacx3202, DACX3202_DAC_1, 2.0);
+    dacx3202_set_voltage(&dacx3202, DACX3202_DAC_0, 3.0);
+    dacx3202_set_voltage(&dacx3202, DACX3202_DAC_1, 3.0);
 
     gpio_clear(EN_SMPS_Port, EN_SMPS_Pin);
 
-    dacx3202_set_value(&dacx3202, DACX3202_DAC_0, 0.5);
-    dacx3202_set_value(&dacx3202, DACX3202_DAC_1, 0.5);
+    gpio_set(SW1_Port, SW1_Pin);
+    gpio_set(SW2_Port, SW2_Pin);
+    gpio_clear(SW1_Port, SW1_Pin);
+    gpio_clear(SW2_Port, SW2_Pin);
+
+    gpio_set(EN_SMPS_Port, EN_SMPS_Pin);
     */
+    
     while (1) {
         __asm__("nop");
     }
