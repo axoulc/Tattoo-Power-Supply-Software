@@ -85,8 +85,8 @@ void configure_spi(void) {
     gpio_set(GPIOA, GPIO_SPI1_NSS);
 
     rcc_periph_reset_pulse(RST_SPI1);
-    spi_init_master(SPI1, SPI_CR1_BAUDRATE_FPCLK_DIV_64, SPI_CR1_CPOL_CLK_TO_1_WHEN_IDLE, SPI_CR1_CPHA_CLK_TRANSITION_2, SPI_CR1_DFF_8BIT, SPI_CR1_MSBFIRST);
-    //spi_enable_software_slave_management(SPI1);
+    spi_init_master(SPI1, SPI_CR1_BAUDRATE_FPCLK_DIV_8, SPI_CR1_CPOL_CLK_TO_1_WHEN_IDLE, SPI_CR1_CPHA_CLK_TRANSITION_2, SPI_CR1_DFF_8BIT, SPI_CR1_MSBFIRST);
+    spi_enable_software_slave_management(SPI1);
     spi_set_nss_high(SPI1);
     spi_enable(SPI1);
 }
@@ -169,3 +169,29 @@ uint16_t read_adc_native(uint8_t channel) {
     uint16_t reg16 = adc_read_regular(ADC1);
     return reg16;
 }
+
+void spi_send_byte(uint8_t byte) {
+    spi_send(SPI1, (uint8_t) byte);
+}
+
+void set_cs_pin(uint8_t state) {
+    if (state)
+        gpio_set(GPIOA, GPIO_SPI1_NSS);
+    else
+        gpio_clear(GPIOA, GPIO_SPI1_NSS);
+}
+
+void set_dc_pin(uint8_t state) {
+    if (state)
+        gpio_set(OLED_DC_Port, OLED_DC_Pin);
+    else
+        gpio_clear(OLED_DC_Port, OLED_DC_Pin);
+}
+
+void set_rst_pin(uint8_t state) {
+    if (state)
+        gpio_set(OLED_RST_Port, OLED_RST_Pin);
+    else
+        gpio_clear(OLED_RST_Port, OLED_RST_Pin);
+}
+

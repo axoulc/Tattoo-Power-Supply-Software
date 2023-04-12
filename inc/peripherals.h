@@ -53,5 +53,9 @@ int _write(int file, char *ptr, int len);
 void configure_i2c(void);
 void configure_adc(void);
 uint16_t read_adc_native(uint8_t channel);
+void spi_send_byte(uint8_t byte);
+void set_cs_pin(uint8_t state);
+void set_dc_pin(uint8_t state);
+void set_rst_pin(uint8_t state);
 
 #endif

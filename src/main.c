@@ -23,8 +23,6 @@ dacx3202_t dacx3202 = {
     .vref = 3.3
 };
 
-TaskHandle_t xHandle = NULL;
-
 int main(void) {
     configure_clock();
     configure_gpio();
