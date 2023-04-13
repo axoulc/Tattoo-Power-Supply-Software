@@ -25,6 +25,7 @@ void display_task(void *pvParameters) {
     uint32_t count = 0, last_count = 0;
     char buffer[16];
     u8g2_t u8g2_i, *u8g2 = &u8g2_i;
+    bool is_redraw = true;
 
     mui_t mui_i, *mui = &mui_i;
   
@@ -52,10 +53,13 @@ void display_task(void *pvParameters) {
     mui_GotoForm(mui, 1, 0);
 
     for (;;) {
-        u8g2_FirstPage(u8g2);
-        do {
-            mui_Draw(mui);
-        } while (u8g2_NextPage(u8g2));
+        if (is_redraw) {
+            u8g2_FirstPage(u8g2);
+            do {
+                mui_Draw(mui);
+            } while (u8g2_NextPage(u8g2));
+            is_redraw = false;
+        }
         vTaskDelay(250 / portTICK_PERIOD_MS);
     }
 }
@@ -108,4 +112,14 @@ void u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void 
             break;
     }
     return 1;
+}
+
+void handle_event_display(mui_t *ui, encoder_t *encoder) {
+    if (get_encoder_sw()) {
+
+    }
+    if (get_encoder_clk()) {
+        if ()
+        mui_Next(ui);
+    }
 }
