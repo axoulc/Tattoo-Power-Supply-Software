@@ -18,7 +18,9 @@
         "stdio.h": "c",
         "spi.h": "c",
         "freertosconfig.h": "c",
-        "freertos.h": "c"
+        "freertos.h": "c",
+        "u8g2.h": "c",
+        "mui.h": "c"
     },
     "cmake.configureOnOpen": false
 }
