@@ -19,18 +19,25 @@ void display_init_task(void) {
 }
 
 void display_task(void *pvParameters) {
+    uint32_t count = 0, last_count = 0;
+    char buffer[16];
     u8x8_t u8x8_i, *u8x8 = &u8x8_i;
     u8x8_Setup(u8x8, u8x8_d_sh1106_128x64_noname, u8x8_cad_001, u8x8_byte_4wire_hw_spi_stm32, u8x8_gpio_and_delay_stm32);
-    // u8x8_d_sh1106_128x64_noname
     u8x8_InitDisplay(u8x8);
 	u8x8_SetPowerSave(u8x8,0);
 	u8x8_SetFont(u8x8, u8x8_font_7x14B_1x2_f);
 
 	u8x8_ClearDisplay(u8x8);
-	u8x8_DrawString(u8x8, 1,1, "Hello!!!");
 
-    while (1) {
-        vTaskDelay(1000);
+    for(;;) {
+        count = get_encoder_count();
+        if (count != last_count) {
+            last_count = count;
+            u8x8_ClearDisplay(u8x8);
+            sprintf(buffer, "%d", count);
+            u8x8_DrawString(u8x8, 0, 0, buffer);
+        }
+        vTaskDelay(250/portTICK_PERIOD_MS);
     }
 }
 
@@ -69,13 +76,13 @@ void u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void 
             vTaskDelay(arg_int / portTICK_PERIOD_MS);
             break;
         case U8X8_MSG_GPIO_CS:  // CS (chip select) pin: Output level in arg_int
-            set_cs_pin(arg_int)
+            set_cs_pin(arg_int);
             break;
         case U8X8_MSG_GPIO_DC:  // DC (data/cmd, A0, register select) pin: Output level in arg_int
-            set_dc_pin(arg_int)
+            set_dc_pin(arg_int);
             break;
         case U8X8_MSG_GPIO_RESET:  // Reset pin: Output level in arg_int
-            set_rst_pin(arg_int)
+            set_rst_pin(arg_int);
             break;  // arg_int=1: Input dir with pullup high for I2C data pin
         default:
             u8x8_SetGPIOResult(u8x8, 1);  // default return value
