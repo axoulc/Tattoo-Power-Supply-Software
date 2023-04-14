@@ -14,6 +14,7 @@ void display_task(void *pvParameters);
 void u8x8_byte_4wire_hw_spi_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
 void u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
 bool handle_event_display(mui_t *ui, encoder_t *encoder);
+void draw_button(u8g2 * u8g2, uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t is_selected, const char *label);
 
 TaskHandle_t DisplayTaskHandle = NULL;
 
@@ -28,34 +29,10 @@ void display_task(void *pvParameters) {
     u8g2_t u8g2_i, *u8g2 = &u8g2_i;
     encoder_t encoder = {0, 0};
     bool is_redraw = true;
-
-/*
-    mui_t mui_i, *mui = &mui_i;
-
-    uint8_t number = 0;
-  
-    muif_t muif_list[] = {
-        //MUIF_VARIABLE("BN", NULL, mui_u8g2_btn_exit_wm_fi)};
-        MUIF_U8G2_FONT_STYLE(0, u8g2_font_helvR08_tr),
-        MUIF_U8G2_LABEL(),
-        MUIF_U8G2_U8_MIN_MAX_STEP("B0", &number, 0, 20, 2, MUI_MMS_2X_BAR|MUI_MMS_SHOW_VALUE, mui_u8g2_u8_bar_wm_mud_pf)
-    };
-
-    fds_t fds_data[] =
-        MUI_FORM(1)
-        MUI_STYLE(0)
-        MUI_LABEL(1,40, "Bar: ")
-        MUI_XY("B0",40, 40)
-        MUI_GOTO(64, 59, 90, " Ok ")
-        ;
-*/
     u8g2_Setup_sh1106_128x64_noname_1(u8g2, U8G2_R0, u8x8_byte_4wire_hw_spi_stm32, u8x8_gpio_and_delay_stm32);
     u8g2_InitDisplay(u8g2);
     u8g2_SetPowerSave(u8g2, 0);
     u8g2_SetFont(u8g2, u8g2_font_helvR08_tr);
-    u8g2_SetFontMode(u8g2, 0);
-    //mui_Init(mui, u8g2, fds_data, muif_list, sizeof(muif_list)/sizeof(muif_t));
-    //mui_GotoForm(mui, 1, 0);
 
     for (;;) {
         if (is_redraw) {
@@ -64,13 +41,10 @@ void display_task(void *pvParameters) {
                 u8g2_DrawFrame(u8g2, 0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
                 u8g2_DrawHLine(u8g2, 0, TOP_BOX_HEIGHT, DISPLAY_WIDTH);
                 u8g2_DrawVLine(u8g2, 64, TOP_BOX_HEIGHT, DISPLAY_HEIGHT - TOP_BOX_HEIGHT);
-                u8g2_SetDrawColor(u8g2, 1);
                 u8g2_DrawStr(u8g2, 2, TOP_BOX_HEIGHT - 2, "Tattoo Machine");
-                u8g2_SetDrawColor(u8g2, 0);
-                u8g2_DrawStr(u8g2, 106, TOP_BOX_HEIGHT - 2, "20V");
-                u8g2_SetDrawColor(u8g2, 1);
-                //mui_Draw(mui);
-            
+                u8g2_DrawStr(u8g2, 106, TOP_BOX_HEIGHT - 2, "20V");        
+
+                draw_button(u8g2, 2, 20, 60, 20, false, "Start");
             } while (u8g2_NextPage(u8g2));
             is_redraw = false;
         }
@@ -150,4 +124,14 @@ bool handle_event_display(mui_t *ui, encoder_t *encoder) {
         }
     }
     return ret;
+}
+
+void draw_button(u8g2 * u8g2, uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t is_selected, const char *label) {
+    u8g2_DrawFrame(u8g2, x, y, w, h);
+    if (is_selected) {
+        u8g2_DrawBox(u8g2, x + 1, y + 1, w - 2, h - 2);
+        u8g2_SetDrawColor(u8g2, 0);
+    }
+    u8g2_DrawStr(u8g2, x + 2, y + h - 2, label);
+    u8g2_SetDrawColor(u8g2, 1);
 }
