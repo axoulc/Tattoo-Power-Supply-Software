@@ -67,6 +67,8 @@ void configure_encoder(void) {
     timer_slave_set_mode(TIM1, TIM_SMCR_SMS_EM3);  // Encoder Mode 3
     timer_ic_set_input(TIM1, TIM_IC1, TIM_IC_IN_TI1);
     timer_ic_set_input(TIM1, TIM_IC2, TIM_IC_IN_TI2);
+    timer_ic_set_filter(TIM1, TIM_IC1, TIM_IC_CK_INT_N_8);
+    timer_ic_set_filter(TIM1, TIM_IC2, TIM_IC_CK_INT_N_8);
     timer_enable_counter(TIM1);
 }
 
