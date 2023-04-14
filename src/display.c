@@ -27,11 +27,20 @@ void draw_pane(u8g2_t *u8g2, output_data_t *data);
 
 TaskHandle_t DisplayTaskHandle = NULL;
 
+/**
+ * @brief Initialize display task
+ * 
+ */
 void display_init_task(void) {
     BaseType_t xReturned;
     xReturned = xTaskCreate(display_task, "Display", configMINIMAL_STACK_SIZE * 2, NULL, tskIDLE_PRIORITY + 1, &DisplayTaskHandle);
 }
 
+/**
+ * @brief Display task
+ * 
+ * @param pvParameters 
+ */
 void display_task(void *pvParameters) {
     output_data_t out1 = {OUT_1, 0, true, 0};
     output_data_t out2 = {OUT_2, 0, false, DISPLAY_WIDTH / 2};
@@ -56,6 +65,14 @@ void display_task(void *pvParameters) {
     }
 }
 
+/**
+ * @brief Hardware interface for u8g2
+ * 
+ * @param u8x8 
+ * @param msg 
+ * @param arg_int 
+ * @param arg_ptr 
+ */
 void u8x8_byte_4wire_hw_spi_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
     uint8_t *data;
     switch (msg) {
@@ -85,6 +102,14 @@ void u8x8_byte_4wire_hw_spi_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, vo
     return 1;
 }
 
+/**
+ * @brief GPIO and delay function for u8g2
+ * 
+ * @param u8x8 
+ * @param msg 
+ * @param arg_int 
+ * @param arg_ptr 
+ */
 void u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
     switch (msg) {
         case U8X8_MSG_DELAY_MILLI:
@@ -106,6 +131,11 @@ void u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void 
     return 1;
 }
 
+/**
+ * @brief Handle event from encoder
+ * 
+ * @param encoder 
+ */
 void handle_event_display(encoder_t *encoder) {
     if (!get_encoder_sw()) {
         vTaskDelay(250 / portTICK_PERIOD_MS);
@@ -131,6 +161,14 @@ void handle_event_display(encoder_t *encoder) {
     }
 }
 
+/**
+ * @brief Draw display for current state
+ * 
+ * @param current_state 
+ * @param u8g2 
+ * @param out1 
+ * @param out2 
+ */
 void draw_display(display_state_t current_state, u8g2_t *u8g2, output_data_t *out1, output_data_t *out2) {
     switch (current_state) {
         case DISPLAY_INIT:
@@ -145,6 +183,13 @@ void draw_display(display_state_t current_state, u8g2_t *u8g2, output_data_t *ou
     }
 }
 
+/**
+ * @brief Draw main display
+ * 
+ * @param u8g2 
+ * @param out1 
+ * @param out2 
+ */
 void draw_main(u8g2_t *u8g2, output_data_t *out1, output_data_t *out2) {
     u8g2_FirstPage(u8g2);
     do {
@@ -159,10 +204,27 @@ void draw_main(u8g2_t *u8g2, output_data_t *out1, output_data_t *out2) {
     } while (u8g2_NextPage(u8g2));
 }
 
+/**
+ * @brief Draw the set config screen
+ * 
+ * @param u8g2 
+ * @param out1 
+ * @param out2 
+ */
 void draw_set_config(u8g2_t *u8g2, output_data_t *out1, output_data_t *out2) {
 
 }
 
+/**
+ * @brief Handle the display state for actions
+ * 
+ * @param current_state 
+ * @param encoder 
+ * @param out1 
+ * @param out2 
+ * @return true 
+ * @return false 
+ */
 bool handle_action_display(display_state_t current_state, encoder_t *encoder, output_data_t *out1, output_data_t *out2) {
     bool ret = false;
     switch (current_state) {
@@ -178,6 +240,15 @@ bool handle_action_display(display_state_t current_state, encoder_t *encoder, ou
     return ret;
 }
 
+/**
+ * @brief Handle the main display state
+ * 
+ * @param encoder 
+ * @param out1 
+ * @param out2 
+ * @return true 
+ * @return false 
+ */
 bool handle_action_main(encoder_t *encoder, output_data_t *out1, output_data_t *out2) {
     bool ret = false;
     if (encoder->event == EVENT_SELECT) {
@@ -218,10 +289,28 @@ bool handle_action_main(encoder_t *encoder, output_data_t *out1, output_data_t *
     return ret;
 }
 
+/**
+ * @brief Handle action for set config
+ * 
+ * @param encoder 
+ * @param out1 
+ * @param out2 
+ * @return true 
+ * @return false 
+ */
 bool handle_action_set_config(encoder_t *encoder, output_data_t *out1, output_data_t *out2) {
     return false;
 }
 
+/**
+ * @brief Draw a button
+ * 
+ * @param u8g2 
+ * @param x 
+ * @param y 
+ * @param is_selected 
+ * @param label 
+ */
 void draw_button(u8g2_t *u8g2, uint8_t x, uint8_t y, uint8_t is_selected, const char *label) {
     uint8_t w = u8g2_GetStrWidth(u8g2, label) + 4;
     uint8_t h = u8g2_GetMaxCharHeight(u8g2) + 2;
@@ -234,6 +323,12 @@ void draw_button(u8g2_t *u8g2, uint8_t x, uint8_t y, uint8_t is_selected, const 
     u8g2_SetDrawColor(u8g2, 1);
 }
 
+/**
+ * @brief Draw a pane with voltage and set button
+ * 
+ * @param u8g2
+ * @param data  
+ */
 void draw_pane(u8g2_t *u8g2, output_data_t *data) {
     static char buf[10];
     sprintf(buf, "%d.%dV", data->voltage / 10, data->voltage % 10);
