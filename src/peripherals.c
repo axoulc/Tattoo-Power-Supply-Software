@@ -76,8 +76,8 @@ uint32_t get_encoder_count(void) {
     return timer_get_counter(TIM1);
 }
 
-uint16_t get_encoder_clk(void) {
-    return gpio_get(Encod_CLK_Port, Encod_CLK_Pin);
+uint16_t get_encoder_rot(void) {
+    return gpio_get(Encod_CLK_Port, Encod_CLK_Pin) && gpio_get(Encod_DT_Port, Encod_DT_Pin);
 }
 
 uint16_t get_encoder_sw(void) {

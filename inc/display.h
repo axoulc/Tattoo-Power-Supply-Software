@@ -34,6 +34,12 @@ typedef struct {
     event_t event;
 } encoder_t;
 
+typedef enum {
+    DISPLAY_INIT,
+    DISPLAY_MAIN,
+    DISPLAY_SET_CONFIG
+} display_state_t;
+
 void display_init_task(void);
 
 #endif

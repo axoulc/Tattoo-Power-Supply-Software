@@ -47,7 +47,7 @@ void configure_clock(void);
 void configure_gpio(void);
 void configure_encoder(void);
 uint32_t get_encoder_count(void);
-uint16_t get_encoder_clk(void);
+uint16_t get_encoder_rot(void);
 uint16_t get_encoder_sw(void);
 void configure_spi(void);
 void configure_usart(void);
