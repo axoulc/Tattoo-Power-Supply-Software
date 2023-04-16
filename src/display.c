@@ -10,8 +10,8 @@
 #include "u8g2.h"
 
 void display_task(void *pvParameters);
-void u8x8_byte_4wire_hw_spi_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
-void u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
+uint8_t u8x8_byte_4wire_hw_spi_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
+uint8_t u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
 void handle_event_display(encoder_t *encoder);
 
 void draw_display(display_state_t current_state, u8g2_t *u8g2, output_data_t *out1, output_data_t *out2);
@@ -32,8 +32,8 @@ TaskHandle_t DisplayTaskHandle = NULL;
  * 
  */
 void display_init_task(void) {
-    BaseType_t xReturned;
-    xReturned = xTaskCreate(display_task, "Display", configMINIMAL_STACK_SIZE * 2, NULL, tskIDLE_PRIORITY + 1, &DisplayTaskHandle);
+    //TODO Creer mutex & sémaphore pour hardware
+    xTaskCreate(display_task, "Display", configMINIMAL_STACK_SIZE * 2, NULL, tskIDLE_PRIORITY + 1, &DisplayTaskHandle);
 }
 
 /**
@@ -42,6 +42,8 @@ void display_init_task(void) {
  * @param pvParameters 
  */
 void display_task(void *pvParameters) {
+    (void)pvParameters; //TODO : Modifier pour passer en param le PDO
+
     output_data_t out1 = {OUT_1, 0, true, 0};
     output_data_t out2 = {OUT_2, 0, false, DISPLAY_WIDTH / 2};
     u8g2_t u8g2_i, *u8g2 = &u8g2_i;
@@ -66,14 +68,15 @@ void display_task(void *pvParameters) {
 }
 
 /**
- * @brief Hardware interface for u8g2
+ * @brief Hardware SPI interface for u8g2
  * 
  * @param u8x8 
  * @param msg 
  * @param arg_int 
  * @param arg_ptr 
+ * @return uint8_t 
  */
-void u8x8_byte_4wire_hw_spi_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
+uint8_t u8x8_byte_4wire_hw_spi_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
     uint8_t *data;
     switch (msg) {
         case U8X8_MSG_BYTE_SEND:
@@ -103,14 +106,15 @@ void u8x8_byte_4wire_hw_spi_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, vo
 }
 
 /**
- * @brief GPIO and delay function for u8g2
+ * @brief Hardware Delay and GPIO interface for u8g2
  * 
  * @param u8x8 
  * @param msg 
  * @param arg_int 
  * @param arg_ptr 
+ * @return uint8_t 
  */
-void u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
+uint8_t u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
     switch (msg) {
         case U8X8_MSG_DELAY_MILLI:
             vTaskDelay(arg_int / portTICK_PERIOD_MS);
