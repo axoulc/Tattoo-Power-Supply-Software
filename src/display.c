@@ -14,42 +14,69 @@ uint8_t u8x8_byte_4wire_hw_spi_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int,
 uint8_t u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
 void handle_event_display(encoder_t *encoder);
 
-void draw_display(display_state_t current_state, u8g2_t *u8g2, output_data_t *out1, output_data_t *out2);
-void draw_main(u8g2_t *u8g2, output_data_t *out1, output_data_t *out2);
-void draw_set_config(u8g2_t *u8g2, output_data_t *out1, output_data_t *out2);
+void draw_display(config_t *current_config, u8g2_t *u8g2, output_data_t *out1, output_data_t *out2);
+void draw_main(config_t *current_config, u8g2_t *u8g2, output_data_t *out1, output_data_t *out2);
+void draw_set_config(config_t *current_config, u8g2_t *u8g2);
 
-bool handle_action_display(display_state_t current_state, encoder_t *encoder, output_data_t *out1, output_data_t *out2);
-bool handle_action_main(encoder_t *encoder, output_data_t *out1, output_data_t *out2);
-bool handle_action_set_config(encoder_t *encoder, output_data_t *out1, output_data_t *out2);
+void handle_action_display(config_t *current_config, encoder_t *encoder, output_data_t *out1, output_data_t *out2);
+void handle_action_main(config_t *current_config, encoder_t *encoder, output_data_t *out1, output_data_t *out2);
+void handle_action_set_config(config_t *current_config, encoder_t *encoder, output_data_t *out1, output_data_t *out2);
 
+void draw_text(u8g2_t *u8g2, uint8_t x, uint8_t y, uint8_t is_selected, const char *text);
 void draw_button(u8g2_t *u8g2, uint8_t x, uint8_t y, uint8_t is_selected, const char *label);
+void draw_checkbox(u8g2_t *u8g2, uint8_t x, uint8_t y, uint8_t w, uint8_t is_checked);
 void draw_pane(u8g2_t *u8g2, output_data_t *data);
 
 TaskHandle_t DisplayTaskHandle = NULL;
 
 /**
  * @brief Initialize display task
- * 
+ *
  */
 void display_init_task(void) {
-    //TODO Creer mutex & sémaphore pour hardware
+    // TODO Creer mutex & sémaphore pour hardware
     xTaskCreate(display_task, "Display", configMINIMAL_STACK_SIZE * 2, NULL, tskIDLE_PRIORITY + 1, &DisplayTaskHandle);
 }
 
 /**
  * @brief Display task
- * 
- * @param pvParameters 
+ *
+ * @param pvParameters
  */
 void display_task(void *pvParameters) {
-    (void)pvParameters; //TODO : Modifier pour passer en param le PDO
+    (void)pvParameters;  // TODO : Modifier pour passer en param le PDO
 
-    output_data_t out1 = {OUT_1, 0, true, 0};
-    output_data_t out2 = {OUT_2, 0, false, DISPLAY_WIDTH / 2};
+    output_data_t out1 = {
+        .output = OUT_1,
+        .voltage = 0,
+        .type = DC,
+        .footswitch = true,
+        .handswitch = false,
+        .is_set_selected = true,
+        .x_offset = 0};
+
+    output_data_t out2 = {
+        .output = OUT_2,
+        .voltage = 0,
+        .type = DC,
+        .footswitch = false,
+        .handswitch = false,
+        .is_set_selected = false,
+        .x_offset = DISPLAY_WIDTH / 2};
+
+    encoder_t encoder = {
+        .current = 0,
+        .last = 0,
+        .event = EVENT_NONE};
+
+    config_t config = {
+        .current_pdo = 15,
+        .current_state = DISPLAY_MAIN,
+        .is_redraw = true,
+        .selected = false,
+        .cursor_idx = CONFIG_VOLTAGE};
+
     u8g2_t u8g2_i, *u8g2 = &u8g2_i;
-    encoder_t encoder = {0, 0, EVENT_NONE};
-    display_state_t state = DISPLAY_MAIN;
-    bool is_redraw = true;
 
     u8g2_Setup_sh1106_128x64_noname_1(u8g2, U8G2_R0, u8x8_byte_4wire_hw_spi_stm32, u8x8_gpio_and_delay_stm32);
     u8g2_InitDisplay(u8g2);
@@ -57,24 +84,24 @@ void display_task(void *pvParameters) {
     u8g2_SetFont(u8g2, u8g2_font_helvR08_tr);
 
     for (;;) {
-        if (is_redraw) {
-            draw_display(state, u8g2, &out1, &out2);
-            is_redraw = false;
+        if (config.is_redraw) {
+            draw_display(&config, u8g2, &out1, &out2);
+            config.is_redraw = false;
         }
         handle_event_display(&encoder);
-        is_redraw = handle_action_display(state, &encoder, &out1, &out2);
+        handle_action_display(&config, &encoder, &out1, &out2);
         vTaskDelay(25 / portTICK_PERIOD_MS);
     }
 }
 
 /**
  * @brief Hardware SPI interface for u8g2
- * 
- * @param u8x8 
- * @param msg 
- * @param arg_int 
- * @param arg_ptr 
- * @return uint8_t 
+ *
+ * @param u8x8
+ * @param msg
+ * @param arg_int
+ * @param arg_ptr
+ * @return uint8_t
  */
 uint8_t u8x8_byte_4wire_hw_spi_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
     uint8_t *data;
@@ -107,12 +134,12 @@ uint8_t u8x8_byte_4wire_hw_spi_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int,
 
 /**
  * @brief Hardware Delay and GPIO interface for u8g2
- * 
- * @param u8x8 
- * @param msg 
- * @param arg_int 
- * @param arg_ptr 
- * @return uint8_t 
+ *
+ * @param u8x8
+ * @param msg
+ * @param arg_int
+ * @param arg_ptr
+ * @return uint8_t
  */
 uint8_t u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
     switch (msg) {
@@ -137,8 +164,8 @@ uint8_t u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, vo
 
 /**
  * @brief Handle event from encoder
- * 
- * @param encoder 
+ *
+ * @param encoder
  */
 void handle_event_display(encoder_t *encoder) {
     if (!get_encoder_sw()) {
@@ -167,20 +194,20 @@ void handle_event_display(encoder_t *encoder) {
 
 /**
  * @brief Draw display for current state
- * 
- * @param current_state 
- * @param u8g2 
- * @param out1 
- * @param out2 
+ *
+ * @param current_config
+ * @param u8g2
+ * @param out1
+ * @param out2
  */
-void draw_display(display_state_t current_state, u8g2_t *u8g2, output_data_t *out1, output_data_t *out2) {
-    switch (current_state) {
+void draw_display(config_t *current_config, u8g2_t *u8g2, output_data_t *out1, output_data_t *out2) {
+    switch (current_config->current_state) {
         case DISPLAY_INIT:
         case DISPLAY_MAIN:
-            draw_main(u8g2, out1, out2);
+            draw_main(current_config, u8g2, out1, out2);
             break;
         case DISPLAY_SET_CONFIG:
-            draw_set_config(u8g2, out1, out2);
+            draw_set_config(current_config, u8g2);
             break;
         default:
             break;
@@ -189,19 +216,24 @@ void draw_display(display_state_t current_state, u8g2_t *u8g2, output_data_t *ou
 
 /**
  * @brief Draw main display
- * 
- * @param u8g2 
- * @param out1 
- * @param out2 
+ *
+ * @param current_config
+ * @param u8g2
+ * @param out1
+ * @param out2
  */
-void draw_main(u8g2_t *u8g2, output_data_t *out1, output_data_t *out2) {
+void draw_main(config_t *current_config, u8g2_t *u8g2, output_data_t *out1, output_data_t *out2) {
+    static char buffer[5];
+    sprintf(buffer, "%dV", current_config->current_pdo);
     u8g2_FirstPage(u8g2);
     do {
+        u8g2_SetFont(u8g2, u8g2_font_helvR08_tr);
         u8g2_DrawFrame(u8g2, 0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
         u8g2_DrawHLine(u8g2, 0, TOP_BOX_HEIGHT, DISPLAY_WIDTH);
         u8g2_DrawVLine(u8g2, DISPLAY_WIDTH / 2, TOP_BOX_HEIGHT, DISPLAY_HEIGHT - TOP_BOX_HEIGHT);
         u8g2_DrawStr(u8g2, 2, TOP_BOX_HEIGHT - 2, "Tattoo Machine");
-        u8g2_DrawStr(u8g2, 106, TOP_BOX_HEIGHT - 2, "20V");
+
+        u8g2_DrawStr(u8g2, 106, TOP_BOX_HEIGHT - 2, buffer);
 
         draw_pane(u8g2, out1);
         draw_pane(u8g2, out2);
@@ -210,110 +242,197 @@ void draw_main(u8g2_t *u8g2, output_data_t *out1, output_data_t *out2) {
 
 /**
  * @brief Draw the set config screen
- * 
- * @param u8g2 
- * @param out1 
- * @param out2 
+ *
+ * @param current_config
+ * @param u8g2
+ * @param out1
+ * @param out2
  */
-void draw_set_config(u8g2_t *u8g2, output_data_t *out1, output_data_t *out2) {
+void draw_set_config(config_t *current_config, u8g2_t *u8g2) {
+    static char buffer[20];
+    sprintf(buffer, "Config %s", current_config->selected_output == OUT_1 ? "OUT 1" : "OUT 2");
+    u8g2_FirstPage(u8g2);
+    do {
+        u8g2_SetFont(u8g2, u8g2_font_helvR08_tr);
+        u8g2_DrawFrame(u8g2, 0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+        u8g2_DrawHLine(u8g2, 0, TOP_BOX_HEIGHT, DISPLAY_WIDTH);
+        u8g2_DrawStr(u8g2, 32, TOP_BOX_HEIGHT - 2, buffer);
 
+        sprintf(buffer, "%d.%dV", current_config->settings.voltage / 10, current_config->settings.voltage % 10);
+        u8g2_DrawStr(u8g2, 4, 25, "Voltage :");
+        draw_text(u8g2, 48, 25, current_config->cursor_idx == CONFIG_VOLTAGE, buffer);
+
+        u8g2_DrawStr(u8g2, 75, 25, "Type :");
+        draw_text(u8g2, 105, 25, current_config->cursor_idx == CONFIG_TYPE, current_config->settings.type == DC ? "DC" : "AC");
+
+        draw_checkbox(u8g2, 15, 42, 10, current_config->settings.footswitch);
+        draw_text(u8g2, 25, 41, current_config->cursor_idx == CONFIG_FOOTSWITCH, "Foot");
+
+        draw_checkbox(u8g2, 70, 42, 10, current_config->settings.handswitch);
+        draw_text(u8g2, 80, 41, current_config->cursor_idx == CONFIG_HANDSWITCH, "Hand");
+
+        draw_button(u8g2, 20, 48, current_config->cursor_idx == CONFIG_SAVE, " Save ");
+        draw_button(u8g2, 80, 48, current_config->cursor_idx == CONFIG_EXIT, " Exit ");
+    } while (u8g2_NextPage(u8g2));
 }
 
 /**
  * @brief Handle the display state for actions
- * 
- * @param current_state 
- * @param encoder 
- * @param out1 
- * @param out2 
- * @return true 
- * @return false 
+ *
+ * @param current_config
+ * @param encoder
+ * @param out1
+ * @param out2
  */
-bool handle_action_display(display_state_t current_state, encoder_t *encoder, output_data_t *out1, output_data_t *out2) {
-    bool ret = false;
-    switch (current_state) {
+void handle_action_display(config_t *current_config, encoder_t *encoder, output_data_t *out1, output_data_t *out2) {
+    switch (current_config->current_state) {
         case DISPLAY_MAIN:
-            ret = handle_action_main(encoder, out1, out2);
+            handle_action_main(current_config, encoder, out1, out2);
             break;
         case DISPLAY_SET_CONFIG:
-            ret = handle_action_set_config(encoder, out1, out2);
+            handle_action_set_config(current_config, encoder, out1, out2);
             break;
         default:
             break;
     }
-    return ret;
 }
 
 /**
  * @brief Handle the main display state
- * 
- * @param encoder 
- * @param out1 
- * @param out2 
- * @return true 
- * @return false 
+ *
+ * @param current_config
+ * @param encoder
+ * @param out1
+ * @param out2
  */
-bool handle_action_main(encoder_t *encoder, output_data_t *out1, output_data_t *out2) {
-    bool ret = false;
-    if (encoder->event == EVENT_SELECT) {
-        if (out1->is_set_selected) {
-            out1->is_set_selected = false;
-            out2->is_set_selected = true;
-        } else {
-            out1->is_set_selected = true;
-            out2->is_set_selected = false;
-        }
-        encoder->event = EVENT_NONE;
-        ret = true;
-    } else if (encoder->event == EVENT_NEXT) {
-        if (out1->is_set_selected) {
-            if (out1->voltage < 100) {
-                out1->voltage++;
+void handle_action_main(config_t *current_config, encoder_t *encoder, output_data_t *out1, output_data_t *out2) {
+    switch (encoder->event) {
+        case EVENT_SELECT:
+            if (out1->is_set_selected) {
+                current_config->selected_output = OUT_1;
+            } else {
+                current_config->selected_output = OUT_2;
             }
-        } else {
-            if (out2->voltage < 100) {
-                out2->voltage++;
+            current_config->current_state = DISPLAY_SET_CONFIG;
+            memcpy(&current_config->settings, current_config->selected_output == OUT_1 ? out1 : out2, sizeof(output_data_t));
+            encoder->event = EVENT_NONE;
+            current_config->is_redraw = true;
+            break;
+        case EVENT_NEXT:
+        case EVENT_PREV:
+            if (out1->is_set_selected) {
+                out1->is_set_selected = false;
+                out2->is_set_selected = true;
+            } else {
+                out1->is_set_selected = true;
+                out2->is_set_selected = false;
             }
-        }
-        encoder->event = EVENT_NONE;
-        ret = true;
-    } else if (encoder->event == EVENT_PREV) {
-        if (out1->is_set_selected) {
-            if (out1->voltage > 0) {
-                out1->voltage--;
-            }
-        } else {
-            if (out2->voltage > 0) {
-                out2->voltage--;
-            }
-        }
-        encoder->event = EVENT_NONE;
-        ret = true;
+            encoder->event = EVENT_NONE;
+            current_config->is_redraw = true;
+            break;
     }
-    return ret;
 }
 
 /**
  * @brief Handle action for set config
- * 
- * @param encoder 
- * @param out1 
- * @param out2 
- * @return true 
- * @return false 
+ *
+ * @param current_config
+ * @param encoder
+ * @param out1
+ * @param out2
  */
-bool handle_action_set_config(encoder_t *encoder, output_data_t *out1, output_data_t *out2) {
-    return false;
+void handle_action_set_config(config_t *current_config, encoder_t *encoder, output_data_t *out1, output_data_t *out2) {
+    switch (encoder->event) {
+        case EVENT_SELECT:
+            switch (current_config->cursor_idx) {
+                case CONFIG_VOLTAGE:
+                    current_config->selected = !current_config->selected;
+                    encoder->event = EVENT_NONE;
+                    current_config->is_redraw = true;
+                    break;
+                case CONFIG_TYPE:
+                    current_config->settings.type = current_config->settings.type == DC ? PULSE : DC;
+                    encoder->event = EVENT_NONE;
+                    current_config->is_redraw = true;
+                    break;
+                case CONFIG_FOOTSWITCH:
+                    current_config->settings.footswitch = !current_config->settings.footswitch;
+                    encoder->event = EVENT_NONE;
+                    current_config->is_redraw = true;
+                    break;
+                case CONFIG_HANDSWITCH:
+                    current_config->settings.handswitch = !current_config->settings.handswitch;
+                    encoder->event = EVENT_NONE;
+                    current_config->is_redraw = true;
+                    break;
+                case CONFIG_SAVE:
+                    memcpy(current_config->selected_output == OUT_1 ? out1 : out2, &current_config->settings, sizeof(output_data_t));
+                    current_config->current_state = DISPLAY_MAIN;
+                    current_config->cursor_idx = CONFIG_VOLTAGE;
+                    encoder->event = EVENT_NONE;
+                    current_config->is_redraw = true;
+                    break;
+                case CONFIG_EXIT:
+                    current_config->current_state = DISPLAY_MAIN;
+                    current_config->cursor_idx = CONFIG_VOLTAGE;
+                    encoder->event = EVENT_NONE;
+                    current_config->is_redraw = true;
+                    break;
+            }
+            break;
+        case EVENT_NEXT:
+            if (current_config->selected) {
+                if (current_config->settings.voltage < MAX_VOLTAGE) {
+                    current_config->settings.voltage++;
+                    current_config->is_redraw = true;
+                }
+            } else {
+                if (current_config->cursor_idx < MAX_CONFIG_IDX) {
+                    current_config->cursor_idx++;
+                    current_config->is_redraw = true;
+                }
+            }
+            encoder->event = EVENT_NONE;
+            break;
+        case EVENT_PREV:
+            if (current_config->selected) {
+                if (current_config->settings.voltage > MIN_VOLTAGE) {
+                    current_config->settings.voltage--;
+                    current_config->is_redraw = true;
+                }
+            } else {
+                if (current_config->cursor_idx > 0) {
+                    current_config->cursor_idx--;
+                    current_config->is_redraw = true;
+                }
+            }
+            encoder->event = EVENT_NONE;
+            break;
+    }
+}
+
+void draw_text(u8g2_t *u8g2, uint8_t x, uint8_t y, uint8_t is_selected, const char *text) {
+    uint8_t w = u8g2_GetStrWidth(u8g2, text);
+    uint8_t h = u8g2_GetMaxCharHeight(u8g2);
+    if (is_selected) {
+        u8g2_SetDrawColor(u8g2, 1);
+        u8g2_DrawBox(u8g2, x, y - h + 1, w, h);
+        u8g2_SetDrawColor(u8g2, 0);
+    }
+    u8g2_DrawStr(u8g2, x, y, text);
+    if (is_selected) {
+        u8g2_SetDrawColor(u8g2, 1);
+    }
 }
 
 /**
  * @brief Draw a button
- * 
- * @param u8g2 
- * @param x 
- * @param y 
- * @param is_selected 
- * @param label 
+ *
+ * @param u8g2
+ * @param x
+ * @param y
+ * @param is_selected
+ * @param label
  */
 void draw_button(u8g2_t *u8g2, uint8_t x, uint8_t y, uint8_t is_selected, const char *label) {
     uint8_t w = u8g2_GetStrWidth(u8g2, label) + 4;
@@ -328,10 +447,27 @@ void draw_button(u8g2_t *u8g2, uint8_t x, uint8_t y, uint8_t is_selected, const 
 }
 
 /**
- * @brief Draw a pane with voltage and set button
- * 
+ * @brief Draw a checkbox
+ *
  * @param u8g2
- * @param data  
+ * @param x
+ * @param y
+ * @param w
+ * @param is_checked
+ */
+void draw_checkbox(u8g2_t *u8g2, uint8_t x, uint8_t y, uint8_t w, uint8_t is_checked) {
+    u8g2_DrawFrame(u8g2, x, y - w, w, w);
+    if (is_checked) {
+        w -= 4;
+        u8g2_DrawBox(u8g2, x + 2, y - w - 2, w, w);
+    }
+}
+
+/**
+ * @brief Draw a pane with voltage and set button
+ *
+ * @param u8g2
+ * @param data
  */
 void draw_pane(u8g2_t *u8g2, output_data_t *data) {
     static char buf[10];
