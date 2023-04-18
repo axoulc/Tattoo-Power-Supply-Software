@@ -20,7 +20,8 @@
         "freertosconfig.h": "c",
         "freertos.h": "c",
         "u8g2.h": "c",
-        "mui.h": "c"
+        "mui.h": "c",
+        "stusb4500.h": "c"
     },
     "cmake.configureOnOpen": false
 }
