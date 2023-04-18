@@ -31,6 +31,8 @@ int main(void) {
     configure_usart();
     configure_i2c();
     configure_adc();
+
+    
     
     display_init_task();
 
@@ -61,18 +63,6 @@ int main(void) {
     }
 
     return 0;
-}
-
-void vTaskCode(void *pvParameters) {
-    int value = 0, last = 0;
-    for (;;) {
-        value = get_encoder_count();
-        if (value != last) {
-            printf("Encod : %d\r\n", value);
-            last = value;
-        }
-        vTaskDelay(pdMS_TO_TICKS(10));
-    }
 }
 
 uint8_t read_i2c(uint8_t addr, uint8_t reg, uint8_t *buffer, uint8_t len) {
