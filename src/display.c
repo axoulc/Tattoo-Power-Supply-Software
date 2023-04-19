@@ -8,6 +8,7 @@
 #include "peripherals.h"
 #include "task.h"
 #include "u8g2.h"
+#include "img_tattoo.h"
 
 void display_task(void *pvParameters);
 uint8_t u8x8_byte_4wire_hw_spi_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
@@ -17,6 +18,7 @@ void handle_event_display(encoder_t *encoder);
 void draw_display(config_t *current_config, u8g2_t *u8g2, output_data_t *out1, output_data_t *out2);
 void draw_main(config_t *current_config, u8g2_t *u8g2, output_data_t *out1, output_data_t *out2);
 void draw_set_config(config_t *current_config, u8g2_t *u8g2);
+void draw_tattoo(config_t *current_config, u8g2_t *u8g2);
 
 void handle_action_display(config_t *current_config, encoder_t *encoder, output_data_t *out1, output_data_t *out2);
 void handle_action_main(config_t *current_config, encoder_t *encoder, output_data_t *out1, output_data_t *out2);
@@ -71,12 +73,16 @@ void display_task(void *pvParameters) {
 
     config_t config = {
         .current_pdo = 15,
-        .current_state = DISPLAY_MAIN,
+        .current_state = DISPLAY_TATTOO,
         .is_redraw = true,
         .selected = false,
+        .logo_blink = false,
         .cursor_idx = CONFIG_VOLTAGE};
 
     u8g2_t u8g2_i, *u8g2 = &u8g2_i;
+    
+    // TODO Modifier pour que ca soit moins degeu
+    uint8_t cnt_tattoo = 0;
 
     u8g2_Setup_sh1106_128x64_noname_1(u8g2, U8G2_R0, u8x8_byte_4wire_hw_spi_stm32, u8x8_gpio_and_delay_stm32);
     u8g2_InitDisplay(u8g2);
@@ -86,11 +92,16 @@ void display_task(void *pvParameters) {
     for (;;) {
         if (config.is_redraw) {
             draw_display(&config, u8g2, &out1, &out2);
-            config.is_redraw = false;
+            //config.is_redraw = false;
         }
         handle_event_display(&encoder);
         handle_action_display(&config, &encoder, &out1, &out2);
         vTaskDelay(25 / portTICK_PERIOD_MS);
+        if (cnt_tattoo++ >= 10) {
+            config.logo_blink = !config.logo_blink;
+            config.is_redraw = true;
+            cnt_tattoo = 0;
+        }
     }
 }
 
@@ -209,6 +220,9 @@ void draw_display(config_t *current_config, u8g2_t *u8g2, output_data_t *out1, o
         case DISPLAY_SET_CONFIG:
             draw_set_config(current_config, u8g2);
             break;
+        case DISPLAY_TATTOO:
+            draw_tattoo(current_config, u8g2);
+            break;
         default:
             break;
     }
@@ -273,6 +287,27 @@ void draw_set_config(config_t *current_config, u8g2_t *u8g2) {
 
         draw_button(u8g2, 20, 48, current_config->cursor_idx == CONFIG_SAVE, " Save ");
         draw_button(u8g2, 80, 48, current_config->cursor_idx == CONFIG_EXIT, " Exit ");
+    } while (u8g2_NextPage(u8g2));
+}
+
+/**
+ * @brief Draw the tattoo screen
+ *
+ * @param current_config
+ * @param u8g2
+ */
+void draw_tattoo(config_t *current_config, u8g2_t *u8g2) {
+    u8g2_FirstPage(u8g2);
+    do {
+        u8g2_SetFont(u8g2, u8g2_font_helvR08_tr);
+        u8g2_DrawFrame(u8g2, 0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+        u8g2_DrawHLine(u8g2, 0, TOP_BOX_HEIGHT, DISPLAY_WIDTH);
+        u8g2_DrawStr(u8g2, 2, TOP_BOX_HEIGHT - 2, "Tattoo Machine");
+        u8g2_SetFont(u8g2, img_tattoo);
+        u8g2_SetDrawColor(u8g2, 0);
+        u8g2_DrawGlyph(u8g2, 45, 62, current_config->logo_blink ? 1001 : 1000);
+        u8g2_SetDrawColor(u8g2, 1);
+        
     } while (u8g2_NextPage(u8g2));
 }
 

@@ -51,7 +51,8 @@ typedef struct {
 typedef enum {
     DISPLAY_INIT,
     DISPLAY_MAIN,
-    DISPLAY_SET_CONFIG
+    DISPLAY_SET_CONFIG,
+    DISPLAY_TATTOO
 } display_state_t;
 
 typedef enum {
@@ -68,6 +69,7 @@ typedef struct {
     display_state_t current_state;
     bool is_redraw;
     bool selected;
+    bool logo_blink;
     output_t selected_output;
     config_idx_t cursor_idx;
     output_data_t settings;
