@@ -23,11 +23,14 @@ void draw_tattoo(config_t *current_config, u8g2_t *u8g2);
 void handle_action_display(config_t *current_config, encoder_t *encoder, output_data_t *out1, output_data_t *out2);
 void handle_action_main(config_t *current_config, encoder_t *encoder, output_data_t *out1, output_data_t *out2);
 void handle_action_set_config(config_t *current_config, encoder_t *encoder, output_data_t *out1, output_data_t *out2);
+void handle_action_tattoo(config_t *current_config);
 
 void draw_text(u8g2_t *u8g2, uint8_t x, uint8_t y, uint8_t is_selected, const char *text);
 void draw_button(u8g2_t *u8g2, uint8_t x, uint8_t y, uint8_t is_selected, const char *label);
 void draw_checkbox(u8g2_t *u8g2, uint8_t x, uint8_t y, uint8_t w, uint8_t is_checked);
 void draw_pane(u8g2_t *u8g2, output_data_t *data);
+
+uint16_t read_voltage(output_t output);
 
 TaskHandle_t DisplayTaskHandle = NULL;
 
@@ -73,14 +76,15 @@ void display_task(void *pvParameters) {
 
     config_t config = {
         .current_pdo = 15,
-        .current_state = DISPLAY_TATTOO,
+        .current_state = DISPLAY_MAIN,
         .is_redraw = true,
         .selected = false,
+        .cursor_idx = CONFIG_VOLTAGE,
         .logo_blink = false,
-        .cursor_idx = CONFIG_VOLTAGE};
+        .logo_blink_counter = 0};
 
     u8g2_t u8g2_i, *u8g2 = &u8g2_i;
-    
+
     // TODO Modifier pour que ca soit moins degeu
     uint8_t cnt_tattoo = 0;
 
@@ -92,16 +96,11 @@ void display_task(void *pvParameters) {
     for (;;) {
         if (config.is_redraw) {
             draw_display(&config, u8g2, &out1, &out2);
-            //config.is_redraw = false;
+            config.is_redraw = false;
         }
         handle_event_display(&encoder);
         handle_action_display(&config, &encoder, &out1, &out2);
-        vTaskDelay(25 / portTICK_PERIOD_MS);
-        if (cnt_tattoo++ >= 10) {
-            config.logo_blink = !config.logo_blink;
-            config.is_redraw = true;
-            cnt_tattoo = 0;
-        }
+        vTaskDelay(DELAY_LOOP_MS / portTICK_PERIOD_MS);
     }
 }
 
@@ -297,17 +296,30 @@ void draw_set_config(config_t *current_config, u8g2_t *u8g2) {
  * @param u8g2
  */
 void draw_tattoo(config_t *current_config, u8g2_t *u8g2) {
+    static char buffer[8];
+    static uint16_t voltage_read = 0;
+    sprintf(buffer, "%dV", current_config->current_pdo);
     u8g2_FirstPage(u8g2);
     do {
         u8g2_SetFont(u8g2, u8g2_font_helvR08_tr);
         u8g2_DrawFrame(u8g2, 0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
         u8g2_DrawHLine(u8g2, 0, TOP_BOX_HEIGHT, DISPLAY_WIDTH);
         u8g2_DrawStr(u8g2, 2, TOP_BOX_HEIGHT - 2, "Tattoo Machine");
+        u8g2_DrawStr(u8g2, 106, TOP_BOX_HEIGHT - 2, buffer);
+
+        voltage_read = read_voltage(OUT_1);
+        sprintf(buffer, "%d.%dV", voltage_read / 10, voltage_read % 10);
+        u8g2_DrawStr(u8g2, 6, 40, buffer);
+
+        voltage_read = read_voltage(OUT_2);
+        sprintf(buffer, "%d.%dV", voltage_read / 10, voltage_read % 10);
+
+        u8g2_DrawStr(u8g2, 128 - u8g2_GetStrWidth(u8g2, buffer) - 6, 40, buffer);
+
         u8g2_SetFont(u8g2, img_tattoo);
         u8g2_SetDrawColor(u8g2, 0);
         u8g2_DrawGlyph(u8g2, 45, 62, current_config->logo_blink ? 1001 : 1000);
         u8g2_SetDrawColor(u8g2, 1);
-        
     } while (u8g2_NextPage(u8g2));
 }
 
@@ -326,6 +338,9 @@ void handle_action_display(config_t *current_config, encoder_t *encoder, output_
             break;
         case DISPLAY_SET_CONFIG:
             handle_action_set_config(current_config, encoder, out1, out2);
+            break;
+        case DISPLAY_TATTOO:
+            handle_action_tattoo(current_config);
             break;
         default:
             break;
@@ -446,6 +461,18 @@ void handle_action_set_config(config_t *current_config, encoder_t *encoder, outp
     }
 }
 
+/**
+ * @brief Handle action for tattoo display
+ * 
+ */
+void handle_action_tattoo(config_t *current_config) {
+    if (current_config->logo_blink_counter++ >= BLINK_COUNTER) {
+        current_config->logo_blink = !current_config->logo_blink;
+        current_config->is_redraw = true;
+        current_config->logo_blink_counter = 0;
+    }
+}
+
 void draw_text(u8g2_t *u8g2, uint8_t x, uint8_t y, uint8_t is_selected, const char *text) {
     uint8_t w = u8g2_GetStrWidth(u8g2, text);
     uint8_t h = u8g2_GetMaxCharHeight(u8g2);
@@ -509,4 +536,27 @@ void draw_pane(u8g2_t *u8g2, output_data_t *data) {
     sprintf(buf, "%d.%dV", data->voltage / 10, data->voltage % 10);
     u8g2_DrawStr(u8g2, 22 + data->x_offset, 40, buf);
     draw_button(u8g2, 20 + data->x_offset, 45, data->is_set_selected, " Set ");
+}
+
+/**
+ * @brief Read adc and convert to voltage
+ *
+ * @param output
+ * @return uint16_t
+ */
+uint16_t read_voltage(output_t output) {
+    uint16_t raw = 0;
+    float voltage = 0;
+    switch (output) {
+        case OUT_1:
+            raw = read_adc_native(0);
+            break;
+        case OUT_2:
+            raw = read_adc_native(1);
+            break;
+    }
+    voltage = (float)raw / 4095 * 3.3;
+    voltage = voltage * (R1_Analog + R2_Analog) / R2_Analog;
+    voltage = voltage / 0.1;
+    return (uint16_t)voltage;
 }

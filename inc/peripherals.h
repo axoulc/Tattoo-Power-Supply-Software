@@ -43,6 +43,10 @@
 #define LED_Port        GPIOB
 #define LED_Pin         GPIO12
 
+// Resistors Values
+#define R1_Analog       13300.0
+#define R2_Analog       1620.0
+
 void configure_clock(void);
 void configure_gpio(void);
 void configure_encoder(void);

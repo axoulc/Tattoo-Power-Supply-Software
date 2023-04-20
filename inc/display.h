@@ -14,6 +14,10 @@
 #define MAX_VOLTAGE 150
 #define MIN_VOLTAGE 10
 
+#define DELAY_LOOP_MS 25
+#define BLINK_DELAY 500
+#define BLINK_COUNTER (BLINK_DELAY / DELAY_LOOP_MS)
+
 typedef enum {
     OUT_1,
     OUT_2
@@ -69,10 +73,11 @@ typedef struct {
     display_state_t current_state;
     bool is_redraw;
     bool selected;
-    bool logo_blink;
     output_t selected_output;
     config_idx_t cursor_idx;
     output_data_t settings;
+    bool logo_blink;
+    uint8_t logo_blink_counter;
 } config_t;
 
 void display_init_task(void);

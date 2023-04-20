@@ -43,8 +43,8 @@ int main(void) {
     configure_i2c();
     configure_adc();
 
-    //stusb4500_begin(&stusb);
-    //uint8_t pdo = stusb4500_get_PDO_number(&stusb);
+    stusb4500_begin(&stusb);
+    uint8_t pdo = stusb4500_get_PDO_number(&stusb);
     //float voltage = stusb4500_get_voltage(&stusb, pdo);
 
     //printf("PDO: %d | Voltage: %f\n", pdo, voltage);
