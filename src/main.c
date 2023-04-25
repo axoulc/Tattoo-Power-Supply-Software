@@ -49,7 +49,7 @@ int main(void) {
 
     //printf("PDO: %d | Voltage: %f\n", pdo, voltage);
 
-    
+    power_init_task();
     display_init_task();
 
     //xTaskCreate(vTaskCode, "NAME", 256, (void *)1, tskIDLE_PRIORITY + 1, &xHandle);

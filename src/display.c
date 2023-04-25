@@ -1,10 +1,6 @@
 #include "display.h"
 
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/spi.h>
-
 #include "FreeRTOS.h"
-#include "FreeRTOSConfig.h"
 #include "peripherals.h"
 #include "task.h"
 #include "u8g2.h"
@@ -32,7 +28,7 @@ void draw_pane(u8g2_t *u8g2, output_data_t *data);
 
 uint16_t read_voltage(output_t output);
 
-TaskHandle_t DisplayTaskHandle = NULL;
+TaskHandle_t display_task_handle = NULL;
 
 /**
  * @brief Initialize display task
@@ -40,7 +36,7 @@ TaskHandle_t DisplayTaskHandle = NULL;
  */
 void display_init_task(void) {
     // TODO Creer mutex & sémaphore pour hardware
-    xTaskCreate(display_task, "Display", configMINIMAL_STACK_SIZE * 2, NULL, tskIDLE_PRIORITY + 1, &DisplayTaskHandle);
+    xTaskCreate(display_task, "Display", configMINIMAL_STACK_SIZE * 2, NULL, tskIDLE_PRIORITY + 1, &display_task_handle);
 }
 
 /**
@@ -463,7 +459,7 @@ void handle_action_set_config(config_t *current_config, encoder_t *encoder, outp
 
 /**
  * @brief Handle action for tattoo display
- * 
+ *
  */
 void handle_action_tattoo(config_t *current_config) {
     if (current_config->logo_blink_counter++ >= BLINK_COUNTER) {
