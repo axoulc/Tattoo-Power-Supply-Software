@@ -71,6 +71,6 @@ typedef struct {
     uint8_t logo_blink_counter;
 } config_t;
 
-void display_init_task(void);
+void display_task(void *pvParameters);
 
 #endif

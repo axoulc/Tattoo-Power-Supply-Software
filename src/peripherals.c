@@ -147,6 +147,22 @@ void configure_i2c(void) {
     i2c_peripheral_enable(I2C1);
 }
 
+uint8_t write_i2c(uint8_t addr, uint16_t reg, uint8_t *data_w, uint16_t len) {
+    uint8_t tx[3] = { 0 };
+    tx[0] = reg;
+    for (int i = 0; i < len; i++) {
+        tx[i + 1] = data_w[i];
+    }
+    i2c_transfer7(I2C1, addr, tx, len + 1, NULL, 0);
+    return 0;
+}
+
+uint8_t read_i2c(uint8_t addr, uint16_t reg, uint8_t *data_r, uint16_t len) {
+    uint8_t tx = reg;
+    i2c_transfer7(I2C1, addr, &tx, 1, data_r, len);
+    return 0;
+}
+
 void configure_adc(void) {
     // PA0: ADC1_IN0
     // PA1: ADC1_IN1

@@ -37,8 +37,8 @@
 
 #define DACX3202_VOLTAGE_TO_DATA(voltage, vref, type) (uint16_t)((voltage / vref) * (1 << (type == DAC53202_10b ? 10 : 12)))
 
-typedef uint8_t (*dacx3202_i2c_write)(uint8_t addr, uint8_t reg, uint8_t *data_w, uint8_t len);
-typedef uint8_t (*dacx3202_i2c_read)(uint8_t addr, uint8_t reg, uint8_t *data_r, uint8_t len);
+typedef uint8_t (*dacx3202_i2c_write)(uint8_t addr, uint16_t reg, uint8_t *data_w, uint16_t len);
+typedef uint8_t (*dacx3202_i2c_read)(uint8_t addr, uint16_t reg, uint8_t *data_r, uint16_t len);
 
 typedef enum {
     DAC53202_10b = 0,

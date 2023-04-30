@@ -6,7 +6,6 @@
 #include "u8g2.h"
 #include "img_tattoo.h"
 
-void display_task(void *pvParameters);
 uint8_t u8x8_byte_4wire_hw_spi_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
 uint8_t u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
 void handle_event_display(encoder_t *encoder);
@@ -28,16 +27,6 @@ void draw_pane(u8g2_t *u8g2, output_data_t *data);
 
 uint16_t read_voltage(output_t output);
 
-TaskHandle_t display_task_handle = NULL;
-
-/**
- * @brief Initialize display task
- *
- */
-void display_init_task(void) {
-    // TODO Creer mutex & sémaphore pour hardware
-    xTaskCreate(display_task, "Display", configMINIMAL_STACK_SIZE * 2, NULL, tskIDLE_PRIORITY + 1, &display_task_handle);
-}
 
 /**
  * @brief Display task

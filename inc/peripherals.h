@@ -57,6 +57,8 @@ void configure_spi(void);
 void configure_usart(void);
 int _write(int file, char *ptr, int len);
 void configure_i2c(void);
+uint8_t write_i2c(uint8_t addr, uint16_t reg, uint8_t *data_w, uint16_t len);
+uint8_t read_i2c(uint8_t addr, uint16_t reg, uint8_t *data_r, uint16_t len);
 void configure_adc(void);
 uint16_t read_adc_native(uint8_t channel);
 void spi_send_byte(uint8_t byte);
