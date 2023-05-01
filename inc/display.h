@@ -15,9 +15,9 @@
 #define MAX_VOLTAGE 150
 #define MIN_VOLTAGE 10
 
-#define DELAY_LOOP_MS 25
+#define DELAY_DISPLAY_LOOP_MS 25
 #define BLINK_DELAY 500
-#define BLINK_COUNTER (BLINK_DELAY / DELAY_LOOP_MS)
+#define BLINK_COUNTER (BLINK_DELAY / DELAY_DISPLAY_LOOP_MS)
 
 typedef struct {
     output_t output;

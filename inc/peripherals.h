@@ -49,6 +49,8 @@
 
 void configure_clock(void);
 void configure_gpio(void);
+uint16_t get_footswitch_state(void);
+uint16_t get_handswitch_state(void);
 void configure_encoder(void);
 uint32_t get_encoder_count(void);
 uint16_t get_encoder_rot(void);
@@ -62,8 +64,6 @@ uint8_t read_i2c(uint8_t addr, uint16_t reg, uint8_t *data_r, uint16_t len);
 void configure_adc(void);
 uint16_t read_adc_native(uint8_t channel);
 void spi_send_byte(uint8_t byte);
-void set_cs_pin(uint8_t state);
-void set_dc_pin(uint8_t state);
-void set_rst_pin(uint8_t state);
+void set_rtos_pin(uint32_t gpioport, uint16_t gpios, uint8_t state);
 
 #endif

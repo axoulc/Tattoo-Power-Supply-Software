@@ -70,9 +70,6 @@ void display_task(void *pvParameters) {
 
     u8g2_t u8g2_i, *u8g2 = &u8g2_i;
 
-    // TODO Modifier pour que ca soit moins degeu
-    uint8_t cnt_tattoo = 0;
-
     u8g2_Setup_sh1106_128x64_noname_1(u8g2, U8G2_R0, u8x8_byte_4wire_hw_spi_stm32, u8x8_gpio_and_delay_stm32);
     u8g2_InitDisplay(u8g2);
     u8g2_SetPowerSave(u8g2, 0);
@@ -85,7 +82,7 @@ void display_task(void *pvParameters) {
         }
         handle_event_display(&encoder);
         handle_action_display(&config, &encoder, &out1, &out2);
-        vTaskDelay(DELAY_LOOP_MS / portTICK_PERIOD_MS);
+        vTaskDelay(pdMS_TO_TICKS(DELAY_DISPLAY_LOOP_MS));
     }
 }
 
@@ -142,13 +139,13 @@ uint8_t u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, vo
             vTaskDelay(arg_int / portTICK_PERIOD_MS);
             break;
         case U8X8_MSG_GPIO_CS:
-            set_cs_pin(arg_int);
+            set_rtos_pin(GPIOA, GPIO_SPI1_NSS, arg_int);
             break;
         case U8X8_MSG_GPIO_DC:
-            set_dc_pin(arg_int);
+            set_rtos_pin(OLED_DC_Port, OLED_DC_Pin, arg_int);
             break;
         case U8X8_MSG_GPIO_RESET:
-            set_rst_pin(arg_int);
+            set_rtos_pin(OLED_RST_Port, OLED_RST_Pin, arg_int);
             break;
         default:
             u8x8_SetGPIOResult(u8x8, 1);  // default return value

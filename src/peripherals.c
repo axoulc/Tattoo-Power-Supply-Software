@@ -10,6 +10,11 @@
 #include <libopencm3/stm32/timer.h>
 #include <libopencm3/stm32/usart.h>
 #include <stdio.h>
+#include "FreeRTOS.h"
+#include "semphr.h"
+
+extern SemaphoreHandle_t gpiob_sem_handle;
+extern SemaphoreHandle_t i2c_sem_handle;
 
 void configure_clock(void) {
     rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
@@ -52,6 +57,14 @@ void configure_gpio(void) {
     // PB11: Handswitch
     gpio_set_mode(Footswitch_Port, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, Footswitch_Pin);
     gpio_set_mode(Handswitch_Port, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, Handswitch_Pin);
+}
+
+uint16_t get_footswitch_state(void) {
+    return gpio_get(Footswitch_Port, Footswitch_Pin);
+}
+
+uint16_t get_handswitch_state(void) {
+    return gpio_get(Handswitch_Port, Handswitch_Pin);
 }
 
 void configure_encoder(void) {
@@ -200,24 +213,16 @@ void spi_send_byte(uint8_t byte) {
     spi_send(SPI1, (uint8_t) byte);
 }
 
-void set_cs_pin(uint8_t state) {
-    if (state)
-        gpio_set(GPIOA, GPIO_SPI1_NSS);
-    else
-        gpio_clear(GPIOA, GPIO_SPI1_NSS);
-}
+void set_rtos_pin(uint32_t gpioport, uint16_t gpios, uint8_t state) {
+    if (gpioport == GPIOB)
+        xSemaphoreTake(gpiob_sem_handle, portMAX_DELAY);
 
-void set_dc_pin(uint8_t state) {
     if (state)
-        gpio_set(OLED_DC_Port, OLED_DC_Pin);
+        gpio_set(gpioport, gpios);
     else
-        gpio_clear(OLED_DC_Port, OLED_DC_Pin);
-}
+        gpio_clear(gpioport, gpios);
 
-void set_rst_pin(uint8_t state) {
-    if (state)
-        gpio_set(OLED_RST_Port, OLED_RST_Pin);
-    else
-        gpio_clear(OLED_RST_Port, OLED_RST_Pin);
+    if (gpioport == GPIOB)
+        xSemaphoreGive(gpiob_sem_handle);
 }
 
