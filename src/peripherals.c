@@ -13,8 +13,26 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 
+void configure_clock(void);
+void configure_gpio(void);
+void configure_encoder(void);
+void configure_spi(void);
+void configure_usart(void);
+void configure_i2c(void);
+void configure_adc(void);
+
 extern SemaphoreHandle_t gpiob_sem_handle;
 extern SemaphoreHandle_t i2c_sem_handle;
+
+void configure_mcu(void) {
+    configure_clock();
+    configure_gpio();
+    configure_encoder();
+    configure_spi();
+    configure_usart();
+    configure_i2c();
+    configure_adc();
+}
 
 void configure_clock(void) {
     rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
