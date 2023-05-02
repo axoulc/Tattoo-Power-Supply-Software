@@ -3,6 +3,8 @@
 #include "FreeRTOS.h"
 #include "peripherals.h"
 #include "task.h"
+#include "semphr.h"
+#include "queue.h"
 #include "u8g2.h"
 #include "img_tattoo.h"
 
@@ -27,6 +29,8 @@ void draw_pane(u8g2_t *u8g2, output_data_t *data);
 
 uint16_t read_voltage(output_t output);
 
+extern QueueHandle_t power_state_queue;
+extern QueueHandle_t output_config_queue;
 
 /**
  * @brief Display task
@@ -399,6 +403,7 @@ void handle_action_set_config(config_t *current_config, encoder_t *encoder, outp
                     break;
                 case CONFIG_SAVE:
                     memcpy(current_config->selected_output == OUT_1 ? out1 : out2, &current_config->settings, sizeof(output_data_t));
+                    xQueueSend(output_config_queue, &current_config->selected_output, 0);
                     current_config->current_state = DISPLAY_MAIN;
                     current_config->cursor_idx = CONFIG_VOLTAGE;
                     encoder->event = EVENT_NONE;

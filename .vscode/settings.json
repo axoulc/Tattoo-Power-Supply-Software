@@ -21,7 +21,8 @@
         "freertos.h": "c",
         "u8g2.h": "c",
         "mui.h": "c",
-        "stusb4500.h": "c"
+        "stusb4500.h": "c",
+        "task.h": "c"
     },
     "cmake.configureOnOpen": false
 }

@@ -3,7 +3,12 @@
 #include "FreeRTOS.h"
 #include "peripherals.h"
 #include "task.h"
+#include "semphr.h"
+#include "queue.h"
 #include "DACx3202.h"
+
+extern QueueHandle_t power_state_queue;
+extern QueueHandle_t output_config_queue;
 
 dacx3202_t dacx3202 = {
     .addr = DACX3202_7B_ADDR(0x00),
@@ -134,4 +139,5 @@ void change_power_state(power_state_t next_state, output_config_t *out1, output_
         default:
             break;
     }
+    xQueueSend(power_state_queue, &next_state, 0);
 }

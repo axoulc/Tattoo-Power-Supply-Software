@@ -24,4 +24,10 @@ typedef struct {
     bool handswitch;
 } output_config_t;
 
+typedef enum {
+    POWER_OFF,
+    POWER_ON_FOOT,
+    POWER_ON_HAND
+} power_state_t;
+
 #endif
