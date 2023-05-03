@@ -72,6 +72,8 @@ void display_task(void *pvParameters) {
         .logo_blink = false,
         .logo_blink_counter = 0};
 
+    power_state_t power_state = POWER_OFF;
+
     u8g2_t u8g2_i, *u8g2 = &u8g2_i;
 
     u8g2_Setup_sh1106_128x64_noname_1(u8g2, U8G2_R0, u8x8_byte_4wire_hw_spi_stm32, u8x8_gpio_and_delay_stm32);
@@ -80,6 +82,15 @@ void display_task(void *pvParameters) {
     u8g2_SetFont(u8g2, u8g2_font_helvR08_tr);
 
     for (;;) {
+        if (xQueueReceive(power_state_queue, &power_state, 0) == pdTRUE) {
+            if (power_state == POWER_OFF) {
+                config.current_state = DISPLAY_MAIN;
+                config.is_redraw = true;
+            } else {
+                config.current_state = DISPLAY_TATTOO;
+                config.is_redraw = true;
+            }
+        }
         if (config.is_redraw) {
             draw_display(&config, u8g2, &out1, &out2);
             config.is_redraw = false;
@@ -403,7 +414,7 @@ void handle_action_set_config(config_t *current_config, encoder_t *encoder, outp
                     break;
                 case CONFIG_SAVE:
                     memcpy(current_config->selected_output == OUT_1 ? out1 : out2, &current_config->settings, sizeof(output_data_t));
-                    xQueueSend(output_config_queue, &current_config->selected_output, 0);
+                    xQueueSend(output_config_queue, &current_config->settings, 0);
                     current_config->current_state = DISPLAY_MAIN;
                     current_config->cursor_idx = CONFIG_VOLTAGE;
                     encoder->event = EVENT_NONE;

@@ -17,6 +17,11 @@ dacx3202_t dacx3202 = {
     .vref = 3.3
 };
 
+/**
+ * @brief Power task. This task is responsible for controlling the power supplies.
+ * 
+ * @param pvParameters 
+ */
 void power_task(void *pvParameters) {
     (void)pvParameters;
 
@@ -72,9 +77,16 @@ void power_task(void *pvParameters) {
     
 }
 
+/**
+ * @brief Check the footswitch and handswitch states and change the power state if necessary.
+ * 
+ * @param power_state 
+ * @param out1 
+ * @param out2 
+ */
 void check_inputs(power_state_t *power_state, output_config_t *out1, output_config_t *out2) {
-    uint16_t footswitch_state = get_footswitch_state();
-    uint16_t handswitch_state = get_handswitch_state();
+    uint16_t footswitch_state = !get_footswitch_state();
+    uint16_t handswitch_state = !get_handswitch_state();
 
     switch (*power_state) {
         case POWER_OFF:
@@ -103,11 +115,19 @@ void check_inputs(power_state_t *power_state, output_config_t *out1, output_conf
     }
 }
 
+/**
+ * @brief Change the power state.
+ * 
+ * @param next_state 
+ * @param out1 
+ * @param out2 
+ */
 void change_power_state(power_state_t next_state, output_config_t *out1, output_config_t *out2) {
     switch (next_state) {
         case POWER_OFF:
             set_rtos_pin(SW1_Port, SW1_Pin, 0);
             set_rtos_pin(SW2_Port, SW2_Pin, 0);
+            set_rtos_pin(LED_Port, LED_Pin, 0);
             break;
         case POWER_ON_FOOT:
             if (out1->footswitch) {
@@ -126,6 +146,7 @@ void change_power_state(power_state_t next_state, output_config_t *out1, output_
 
                 }
             }
+            set_rtos_pin(LED_Port, LED_Pin, 1);
             break;
         case POWER_ON_HAND:
             if (out1->handswitch) {
@@ -144,6 +165,7 @@ void change_power_state(power_state_t next_state, output_config_t *out1, output_
 
                 }
             }
+            set_rtos_pin(LED_Port, LED_Pin, 1);
             break;
         default:
             break;

@@ -48,15 +48,6 @@ void configure_clock(void) {
 }
 
 void configure_gpio(void) {
-    // PB13: SW1
-    // PB14: SW2
-    // PA15: USB_DFU
-    gpio_set_mode(SW1_Port, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, SW1_Pin);
-    gpio_set_mode(SW2_Port, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, SW2_Pin);
-    gpio_set_mode(USB_DFU_Port, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, USB_DFU_Pin);
-    gpio_clear(SW1_Port, SW1_Pin);
-    gpio_clear(SW2_Port, SW2_Pin);
-
     // PB0: EN_SMPS
     // PB8: OLED_DC
     // PB9: OLED_RST
@@ -70,6 +61,15 @@ void configure_gpio(void) {
     gpio_clear(LED_Port, LED_Pin);
     gpio_clear(OLED_DC_Port, OLED_DC_Pin);
     gpio_clear(OLED_RST_Port, OLED_RST_Pin);
+
+    // PB13: SW1
+    // PB14: SW2
+    // PA15: USB_DFU
+    gpio_set_mode(SW1_Port, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, SW1_Pin);
+    gpio_set_mode(SW2_Port, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, SW2_Pin);
+    gpio_set_mode(USB_DFU_Port, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, USB_DFU_Pin);
+    gpio_clear(SW1_Port, SW1_Pin);
+    gpio_clear(SW2_Port, SW2_Pin);
 
     // PB10: Footswitch
     // PB11: Handswitch
@@ -169,11 +169,6 @@ void configure_i2c(void) {
 
     /* Setup I2C parameters. */
     i2c_peripheral_disable(I2C1);
-    //i2c_set_clock_frequency(I2C1, 36);
-    //i2c_set_fast_mode(I2C1);
-    //i2c_set_standard_mode(I2C1);
-    //i2c_set_ccr(I2C1, 0x1e);
-    //i2c_set_trise(I2C1, 0x0b);
     i2c_set_speed(I2C1, i2c_speed_sm_100k, 36);
     i2c_peripheral_enable(I2C1);
 }
@@ -184,13 +179,17 @@ uint8_t write_i2c(uint8_t addr, uint16_t reg, uint8_t *data_w, uint16_t len) {
     for (int i = 0; i < len; i++) {
         tx[i + 1] = data_w[i];
     }
+    xSemaphoreTake(i2c_sem_handle, portMAX_DELAY);
     i2c_transfer7(I2C1, addr, tx, len + 1, NULL, 0);
+    xSemaphoreGive(i2c_sem_handle);
     return 0;
 }
 
 uint8_t read_i2c(uint8_t addr, uint16_t reg, uint8_t *data_r, uint16_t len) {
     uint8_t tx = reg;
+    xSemaphoreTake(i2c_sem_handle, portMAX_DELAY);
     i2c_transfer7(I2C1, addr, &tx, 1, data_r, len);
+    xSemaphoreGive(i2c_sem_handle);
     return 0;
 }
 
