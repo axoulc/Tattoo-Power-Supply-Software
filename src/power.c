@@ -38,6 +38,8 @@ void power_task(void *pvParameters) {
         .handswitch = false
     };
 
+    output_config_t buffer_out;
+
     set_rtos_pin(EN_SMPS_Port, EN_SMPS_Pin, 1);
     set_rtos_pin(SW1_Port, SW1_Pin, 0);
     set_rtos_pin(SW2_Port, SW2_Pin, 0);
@@ -57,6 +59,13 @@ void power_task(void *pvParameters) {
     set_rtos_pin(EN_SMPS_Port, EN_SMPS_Pin, 0);
 
     for (;;) {
+        if (xQueueReceive(output_config_queue, &buffer_out, (TickType_t) 10) == pdTRUE) {
+            if (buffer_out.output == OUT_1) {
+                out1 = buffer_out;
+            } else if (buffer_out.output == OUT_2) {
+                out2 = buffer_out;
+            }
+        }
         check_inputs(&power_state, &out1, &out2);
         vTaskDelay(pdMS_TO_TICKS(DELAY_POWER_LOOP_MS));
     }
