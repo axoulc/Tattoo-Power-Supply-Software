@@ -32,6 +32,7 @@ void dacx3202_power_up(dacx3202_t *dacx3202, dacx3202_dac_t channel) {
 
 void dacx3202_set_value(dacx3202_t *dacx3202, dacx3202_dac_t channel, uint16_t value) {
     uint8_t buffer[2] = { 0 };
+    value = dacx3202->type == DAC63202_12b ? value << 4 : value << 6;
     buffer[0] = (value >> 8) & 0xff;
     buffer[1] = value & 0xff;
     dacx3202->i2c_write(dacx3202->addr, channel == DACX3202_DAC_0 ? DACX3202_REG_DAC_0_DATA : DACX3202_REG_DAC_1_DATA, buffer, 2);
@@ -39,7 +40,8 @@ void dacx3202_set_value(dacx3202_t *dacx3202, dacx3202_dac_t channel, uint16_t v
 
 void dacx3202_set_voltage(dacx3202_t *dacx3202, dacx3202_dac_t channel, float voltage) {
     uint8_t buffer[2] = { 0 };
-    uint16_t dac_value = dacx3202->type == DAC63202_12b ? DACX3202_VOLTAGE_TO_DATA(voltage, dacx3202->vref, dacx3202->type) << 4 : DACX3202_VOLTAGE_TO_DATA(voltage, dacx3202->vref, dacx3202->type) << 6;
+    uint16_t dac_value = DACX3202_VOLTAGE_TO_DATA(voltage, dacx3202->vref, dacx3202->type);
+    dac_value = dacx3202->type == DAC63202_12b ? dac_value << 4 : dac_value << 6;
     buffer[0] = (dac_value >> 8) & 0xff;
     buffer[1] = dac_value & 0xff;
     dacx3202->i2c_write(dacx3202->addr, channel == DACX3202_DAC_0 ? DACX3202_REG_DAC_0_DATA : DACX3202_REG_DAC_1_DATA, buffer, 2);

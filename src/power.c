@@ -6,9 +6,17 @@
 #include "semphr.h"
 #include "queue.h"
 #include "DACx3202.h"
+#include "stusb4500.h"
 
 extern QueueHandle_t power_state_queue;
 extern QueueHandle_t output_config_queue;
+
+stusb4500_t stusb4500 = {
+    .addr = 0x28,
+    .i2c_read = read_i2c,
+    .i2c_write = write_i2c,
+    .hard_reset = false
+};
 
 dacx3202_t dacx3202 = {
     .addr = DACX3202_7B_ADDR(0x00),
@@ -48,6 +56,10 @@ void power_task(void *pvParameters) {
     set_rtos_pin(EN_SMPS_Port, EN_SMPS_Pin, 1);
     set_rtos_pin(SW1_Port, SW1_Pin, 0);
     set_rtos_pin(SW2_Port, SW2_Pin, 0);
+
+    //stusb4500_begin(&stusb4500);
+    //uint8_t pdo = stusb4500_get_PDO_number(&stusb4500);
+    //float voltage = stusb4500_get_voltage(&stusb4500, pdo);
 
     if (0) { // TODO: Check pdo and alert display task if is 5V
         vTaskSuspend( NULL );
