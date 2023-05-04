@@ -22,7 +22,8 @@
         "u8g2.h": "c",
         "mui.h": "c",
         "stusb4500.h": "c",
-        "task.h": "c"
+        "task.h": "c",
+        "tattoo_types.h"
     },
     "cmake.configureOnOpen": false
 }

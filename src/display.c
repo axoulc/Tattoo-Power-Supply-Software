@@ -547,10 +547,10 @@ uint16_t read_voltage(output_t output) {
     float voltage = 0;
     switch (output) {
         case OUT_1:
-            raw = read_adc_native(0);
+            raw = read_adc_native(1);
             break;
         case OUT_2:
-            raw = read_adc_native(1);
+            raw = read_adc_native(0);
             break;
     }
     voltage = (float)raw / 4095 * 3.3;
