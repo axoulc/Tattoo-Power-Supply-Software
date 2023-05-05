@@ -8,7 +8,7 @@
 #include "stusb4500.h"
 #include "task.h"
 
-uint16_t convert_voltage_into_raw_dac(uint16_t voltage);
+uint16_t convert_voltage_into_raw_dac(uint16_t voltage, output_t output);
 
 extern QueueHandle_t power_state_queue;
 extern QueueHandle_t output_config_queue;
@@ -37,14 +37,14 @@ void power_task(void *pvParameters) {
 
     output_config_t out1 = {
         .output = OUT_1,
-        .voltage = 0,
+        .voltage = 20,
         .type = DC,
-        .footswitch = false,
+        .footswitch = true,
         .handswitch = false};
 
     output_config_t out2 = {
         .output = OUT_2,
-        .voltage = 0,
+        .voltage = 20,
         .type = DC,
         .footswitch = false,
         .handswitch = false};
@@ -69,8 +69,8 @@ void power_task(void *pvParameters) {
 
     dacx3202_power_up(&dacx3202, DACX3202_DAC_0);
     dacx3202_power_up(&dacx3202, DACX3202_DAC_1);
-    dacx3202_set_voltage(&dacx3202, DACX3202_DAC_0, 3.0);
-    dacx3202_set_voltage(&dacx3202, DACX3202_DAC_1, 3.0);
+    dacx3202_set_value(&dacx3202, DACX3202_DAC_1, convert_voltage_into_raw_dac(out1.voltage, OUT_1));
+    dacx3202_set_value(&dacx3202, DACX3202_DAC_0, convert_voltage_into_raw_dac(out1.voltage, OUT_2));
     set_rtos_pin(EN_SMPS_Port, EN_SMPS_Pin, 0);
 
     for (;;) {
@@ -140,14 +140,14 @@ void change_power_state(power_state_t next_state, output_config_t *out1, output_
             break;
         case POWER_ON_FOOT:
             if (out1->footswitch) {
-                dacx3202_set_value(&dacx3202, DACX3202_DAC_1, convert_voltage_into_raw_dac(out1->voltage));
+                dacx3202_set_value(&dacx3202, DACX3202_DAC_1, convert_voltage_into_raw_dac(out1->voltage, OUT_1));
                 if (out1->type == DC) {
                     set_rtos_pin(SW2_Port, SW2_Pin, 1);
                 } else {
                 }
             }
             if (out2->footswitch) {
-                dacx3202_set_value(&dacx3202, DACX3202_DAC_0, convert_voltage_into_raw_dac(out2->voltage));
+                dacx3202_set_value(&dacx3202, DACX3202_DAC_0, convert_voltage_into_raw_dac(out2->voltage, OUT_2));
                 if (out2->type == DC) {
                     set_rtos_pin(SW1_Port, SW1_Pin, 1);
                 } else {
@@ -157,14 +157,14 @@ void change_power_state(power_state_t next_state, output_config_t *out1, output_
             break;
         case POWER_ON_HAND:
             if (out1->handswitch) {
-                dacx3202_set_value(&dacx3202, DACX3202_DAC_1, convert_voltage_into_raw_dac(out1->voltage));
+                dacx3202_set_value(&dacx3202, DACX3202_DAC_1, convert_voltage_into_raw_dac(out1->voltage, OUT_1));
                 if (out1->type == DC) {
                     set_rtos_pin(SW2_Port, SW2_Pin, 1);
                 } else {
                 }
             }
             if (out2->handswitch) {
-                dacx3202_set_value(&dacx3202, DACX3202_DAC_0, convert_voltage_into_raw_dac(out2->voltage));
+                dacx3202_set_value(&dacx3202, DACX3202_DAC_0, convert_voltage_into_raw_dac(out2->voltage, OUT_2));
                 if (out2->type == DC) {
                     set_rtos_pin(SW1_Port, SW1_Pin, 1);
                 } else {
@@ -184,8 +184,13 @@ void change_power_state(power_state_t next_state, output_config_t *out1, output_
  * @param voltage
  * @return uint16_t
  */
-uint16_t convert_voltage_into_raw_dac(uint16_t voltage) {
+uint16_t convert_voltage_into_raw_dac(uint16_t voltage, output_t output) {
     float voltage_buf = ((float)voltage) / 10.0;
+    if (output == OUT_1) {
+        voltage_buf = voltage_buf / OUT1_CALIB_FACTOR - OUT1_CALIB_OFFSET;
+    } else if (output == OUT_2) {
+        voltage_buf = voltage_buf / OUT2_CALIB_FACTOR - OUT2_CALIB_OFFSET;
+    }
     float value_dec = (float)(1 << (dacx3202.type == DAC53202_10b ? 10 : 12)) * (R1 * R2 * V_REF + R1 * R3 * V_REF + R2 * R3 * (-voltage_buf + V_REF)) / (R1 * R2 * dacx3202.vref);
-    return (uint16_t)(value_dec);
+    return (uint16_t)value_dec;
 }

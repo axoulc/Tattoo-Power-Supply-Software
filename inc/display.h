@@ -13,7 +13,7 @@
 #define MAX_CONFIG_IDX 5
 
 #define MAX_VOLTAGE 150
-#define MIN_VOLTAGE 10
+#define MIN_VOLTAGE 20
 
 #define DELAY_DISPLAY_LOOP_MS 25
 #define BLINK_DELAY 500

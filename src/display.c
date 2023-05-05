@@ -42,7 +42,7 @@ void display_task(void *pvParameters) {
 
     output_data_t out1 = {
         .output = OUT_1,
-        .voltage = 0,
+        .voltage = 20,
         .type = DC,
         .footswitch = true,
         .handswitch = false,
@@ -51,7 +51,7 @@ void display_task(void *pvParameters) {
 
     output_data_t out2 = {
         .output = OUT_2,
-        .voltage = 0,
+        .voltage = 20,
         .type = DC,
         .footswitch = false,
         .handswitch = false,
