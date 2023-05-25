@@ -117,6 +117,10 @@ void check_inputs(power_state_t *power_state, output_config_t *out1, output_conf
             if (handswitch_state) {
                 change_power_state(POWER_OFF, out1, out2);
                 *power_state = POWER_OFF;
+            } else if (footswitch_state) {
+                change_power_state(POWER_OFF, out1, out2);
+                while(!get_footswitch_state());
+                *power_state = POWER_OFF;
             }
             break;
         default:

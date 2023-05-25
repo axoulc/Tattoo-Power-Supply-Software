@@ -3,7 +3,7 @@
 
 #include "tattoo_types.h"
 
-#define DELAY_POWER_LOOP_MS 200
+#define DELAY_POWER_LOOP_MS 100
 
 #define R1 8450.0
 #define R2 1000.0
