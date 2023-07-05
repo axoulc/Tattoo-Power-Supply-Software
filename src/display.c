@@ -151,6 +151,7 @@ uint8_t u8x8_byte_4wire_hw_spi_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int,
  * @return uint8_t
  */
 uint8_t u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
+    (void) arg_ptr;
     switch (msg) {
         case U8X8_MSG_DELAY_MILLI:
             vTaskDelay(arg_int / portTICK_PERIOD_MS);
@@ -379,6 +380,9 @@ void handle_action_main(config_t *current_config, encoder_t *encoder, output_dat
             encoder->event = EVENT_NONE;
             current_config->is_redraw = true;
             break;
+        case EVENT_NONE:
+        default:
+            break;
     }
 }
 
@@ -457,6 +461,9 @@ void handle_action_set_config(config_t *current_config, encoder_t *encoder, outp
                 }
             }
             encoder->event = EVENT_NONE;
+            break;
+        case EVENT_NONE:
+        default:
             break;
     }
 }

@@ -16,7 +16,7 @@ typedef enum {
     PULSE
 } supply_type_t;
 
-typedef struct {
+typedef struct __attribute__((__packed__)) {
     output_t output;
     uint16_t voltage;
     supply_type_t type;

@@ -6,7 +6,9 @@
                 "${workspaceFolder}/libopencm3/include",
                 "${workspaceFolder}/inc",
                 "${workspaceFolder}/FreeRTOS/include",
-                "${workspaceFolder}/u8g2/csrc"
+                "${workspaceFolder}/u8g2/csrc",
+                "${workspaceFolder}/lib",
+                "${workspaceFolder}/lib/ee_libopencm3"
             ],
             "defines": [
                 "STM32F1"
