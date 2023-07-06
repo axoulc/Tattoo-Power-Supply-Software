@@ -10,6 +10,7 @@
 #define IDENT_OUT2          0xEE
 
 bool eeprom_init(void);
+bool eeprom_data_available(void);
 bool eeprom_read(output_config_t * data);
 bool eeprom_write(output_config_t * data);
 

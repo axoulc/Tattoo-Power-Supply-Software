@@ -13,6 +13,15 @@ bool eeprom_init(void) {
     return ee_format(false);
 }
 
+bool eeprom_data_available(void) {
+    uint8_t buffer[2] = { 0 };
+    if (ee_read(BASE_ADRESS_OUT1, 1, &buffer[0]) && ee_read(BASE_ADRESS_OUT2, 1, &buffer[1])) {
+        if (buffer[0] == IDENT_OUT1 && buffer[1] == IDENT_OUT2)
+            return true;
+    }
+    return false;
+}
+
 bool eeprom_read(output_config_t * data) {
     uint8_t buffer = 0;
     if (ee_read(data->output == OUT_1 ? BASE_ADRESS_OUT1 : BASE_ADRESS_OUT2, 1, &buffer)) {

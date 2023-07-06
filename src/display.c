@@ -6,6 +6,7 @@
 #include "semphr.h"
 #include "queue.h"
 #include "u8g2.h"
+#include "memory.h"
 #include "img_tattoo.h"
 
 uint8_t u8x8_byte_4wire_hw_spi_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
@@ -75,6 +76,19 @@ void display_task(void *pvParameters) {
     power_state_t power_state = POWER_OFF;
 
     u8g2_t u8g2_i, *u8g2 = &u8g2_i;
+
+    if (!eeprom_init()) {
+        // TODO
+    }
+
+    if (eeprom_data_available()) {
+        if (eeprom_read(&out1)) {
+            xQueueSend(output_config_queue, &out1, 0);
+        }
+        if (eeprom_read(&out2)) {
+            xQueueSend(output_config_queue, &out2, 0);
+        }
+    }
 
     vTaskDelay(pdMS_TO_TICKS(2000)); // Wait for startup 3s ?
 
@@ -421,6 +435,9 @@ void handle_action_set_config(config_t *current_config, encoder_t *encoder, outp
                 case CONFIG_SAVE:
                     memcpy(current_config->selected_output == OUT_1 ? out1 : out2, &current_config->settings, sizeof(output_data_t));
                     xQueueSend(output_config_queue, &current_config->settings, 0);
+                    if (!eeprom_write(&current_config->settings)) {
+                        // TODO
+                    }
                     current_config->current_state = DISPLAY_MAIN;
                     current_config->cursor_idx = CONFIG_VOLTAGE;
                     encoder->event = EVENT_NONE;
