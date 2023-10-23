@@ -40,14 +40,14 @@ void power_task(void *pvParameters) {
         .voltage = 20,
         .type = DC,
         .footswitch = true,
-        .handswitch = false};
+        .handswitch = true};
 
     output_config_t out2 = {
         .output = OUT_2,
         .voltage = 20,
         .type = DC,
-        .footswitch = false,
-        .handswitch = false};
+        .footswitch = true,
+        .handswitch = true};
 
     output_config_t buffer_out;
 
@@ -129,6 +129,11 @@ void check_inputs(power_state_t *power_state, output_config_t *out1, output_conf
 }
 
 /**
+ * @brief 
+ * 
+ * 
+ * 
+ */
  * @brief Change the power state.
  *
  * @param next_state

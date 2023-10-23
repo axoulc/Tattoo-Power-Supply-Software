@@ -45,7 +45,7 @@ void display_task(void *pvParameters) {
         .voltage = 20,
         .type = DC,
         .footswitch = true,
-        .handswitch = false,
+        .handswitch = true,
         .is_set_selected = true,
         .x_offset = 0};
 
@@ -53,8 +53,8 @@ void display_task(void *pvParameters) {
         .output = OUT_2,
         .voltage = 20,
         .type = DC,
-        .footswitch = false,
-        .handswitch = false,
+        .footswitch = true,
+        .handswitch = true,
         .is_set_selected = false,
         .x_offset = DISPLAY_WIDTH / 2};
 
