@@ -40,6 +40,8 @@ extern QueueHandle_t output_config_queue;
 void display_task(void *pvParameters) {
     (void)pvParameters;  // TODO : Modifier pour passer en param le PDO
 
+    vTaskDelay(pdMS_TO_TICKS(2000));
+
     output_data_t out1 = {
         .output = OUT_1,
         .voltage = 20,
@@ -76,10 +78,10 @@ void display_task(void *pvParameters) {
 
     u8g2_t u8g2_i, *u8g2 = &u8g2_i;
 
-    vTaskDelay(pdMS_TO_TICKS(2000)); // Wait for startup 3s ?
 
     u8g2_Setup_sh1106_128x64_noname_1(u8g2, U8G2_R0, u8x8_byte_4wire_hw_spi_stm32, u8x8_gpio_and_delay_stm32);
     u8g2_InitDisplay(u8g2);
+
     u8g2_SetPowerSave(u8g2, 0);
     u8g2_SetFont(u8g2, u8g2_font_helvR08_tr);
 
@@ -358,18 +360,6 @@ void handle_action_main(config_t *current_config, encoder_t *encoder, output_dat
     switch (encoder->event) {
         case EVENT_SELECT:
             if (out1->is_set_selected) {
-                current_config->selected_output = OUT_1;
-            } else {
-                current_config->selected_output = OUT_2;
-            }
-            current_config->current_state = DISPLAY_SET_CONFIG;
-            memcpy(&current_config->settings, current_config->selected_output == OUT_1 ? out1 : out2, sizeof(output_data_t));
-            encoder->event = EVENT_NONE;
-            current_config->is_redraw = true;
-            break;
-        case EVENT_NEXT:
-        case EVENT_PREV:
-            if (out1->is_set_selected) {
                 out1->is_set_selected = false;
                 out2->is_set_selected = true;
             } else {
@@ -378,6 +368,30 @@ void handle_action_main(config_t *current_config, encoder_t *encoder, output_dat
             }
             encoder->event = EVENT_NONE;
             current_config->is_redraw = true;
+
+            break;
+        case EVENT_NEXT:
+            if (out1->is_set_selected && out1->voltage < MAX_VOLTAGE) {
+                out1->voltage++;
+                xQueueSend(output_config_queue, out1, 0);
+            } else if (out2->voltage < MAX_VOLTAGE) {
+                out2->voltage++;
+                xQueueSend(output_config_queue, out2, 0);
+            }
+            current_config->is_redraw = true;
+            encoder->event = EVENT_NONE;
+            break;
+        case EVENT_PREV:
+            if (out1->is_set_selected && out1->voltage > MIN_VOLTAGE) {
+                out1->voltage--;
+                xQueueSend(output_config_queue, out1, 0);
+            } else if (out2->voltage > MIN_VOLTAGE) {
+                out2->voltage--;
+                xQueueSend(output_config_queue, out2, 0);
+            }
+            current_config->is_redraw = true;
+            encoder->event = EVENT_NONE;
+            
             break;
     }
 }
@@ -534,8 +548,8 @@ void draw_checkbox(u8g2_t *u8g2, uint8_t x, uint8_t y, uint8_t w, uint8_t is_che
 void draw_pane(u8g2_t *u8g2, output_data_t *data) {
     static char buf[10];
     sprintf(buf, "%d.%dV", data->voltage / 10, data->voltage % 10);
-    u8g2_DrawStr(u8g2, 22 + data->x_offset, 40, buf);
-    draw_button(u8g2, 20 + data->x_offset, 45, data->is_set_selected, " Set ");
+    u8g2_SetFont(u8g2, u8g2_font_helvR14_tr);
+    draw_text(u8g2, 14 + data->x_offset, 45, data->is_set_selected, buf);
 }
 
 /**

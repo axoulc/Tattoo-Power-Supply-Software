@@ -55,6 +55,8 @@ void power_task(void *pvParameters) {
     set_rtos_pin(SW1_Port, SW1_Pin, 0);
     set_rtos_pin(SW2_Port, SW2_Pin, 0);
 
+    vTaskDelay(pdMS_TO_TICKS(2000)); 
+
     // stusb4500_begin(&stusb4500);
     // uint8_t pdo = stusb4500_get_PDO_number(&stusb4500);
     // float voltage = stusb4500_get_voltage(&stusb4500, pdo);
@@ -66,7 +68,6 @@ void power_task(void *pvParameters) {
     if (dacx3202_init(&dacx3202) != 0) {
         // TODO: Handle error
     }
-
     dacx3202_power_up(&dacx3202, DACX3202_DAC_0);
     dacx3202_power_up(&dacx3202, DACX3202_DAC_1);
     dacx3202_set_value(&dacx3202, DACX3202_DAC_1, convert_voltage_into_raw_dac(out1.voltage, OUT_1));
@@ -129,11 +130,6 @@ void check_inputs(power_state_t *power_state, output_config_t *out1, output_conf
 }
 
 /**
- * @brief 
- * 
- * 
- * 
- */
  * @brief Change the power state.
  *
  * @param next_state
