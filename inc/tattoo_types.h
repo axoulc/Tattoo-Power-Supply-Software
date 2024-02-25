@@ -11,17 +11,10 @@ typedef enum {
     OUT_2
 } output_t;
 
-typedef enum {
-    DC,
-    PULSE
-} supply_type_t;
-
 typedef struct {
     output_t output;
     uint16_t voltage;
-    supply_type_t type;
-    bool footswitch;
-    bool handswitch;
+    bool enable;
 } output_config_t;
 
 typedef enum {

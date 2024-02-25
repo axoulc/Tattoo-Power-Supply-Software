@@ -38,16 +38,12 @@ void power_task(void *pvParameters) {
     output_config_t out1 = {
         .output = OUT_1,
         .voltage = 20,
-        .type = DC,
-        .footswitch = true,
-        .handswitch = true};
+        .enable = true};
 
     output_config_t out2 = {
         .output = OUT_2,
         .voltage = 20,
-        .type = DC,
-        .footswitch = true,
-        .handswitch = true};
+        .enable = false};
 
     output_config_t buffer_out;
 
@@ -55,7 +51,7 @@ void power_task(void *pvParameters) {
     set_rtos_pin(SW1_Port, SW1_Pin, 0);
     set_rtos_pin(SW2_Port, SW2_Pin, 0);
 
-    vTaskDelay(pdMS_TO_TICKS(2000)); 
+    //vTaskDelay(pdMS_TO_TICKS(2000)); 
 
     // stusb4500_begin(&stusb4500);
     // uint8_t pdo = stusb4500_get_PDO_number(&stusb4500);
@@ -144,36 +140,24 @@ void change_power_state(power_state_t next_state, output_config_t *out1, output_
             set_rtos_pin(LED_Port, LED_Pin, 0);
             break;
         case POWER_ON_FOOT:
-            if (out1->footswitch) {
+            if (out1->enable) {
                 dacx3202_set_value(&dacx3202, DACX3202_DAC_1, convert_voltage_into_raw_dac(out1->voltage, OUT_1));
-                if (out1->type == DC) {
-                    set_rtos_pin(SW2_Port, SW2_Pin, 1);
-                } else {
-                }
+                set_rtos_pin(SW2_Port, SW2_Pin, 1);
             }
-            if (out2->footswitch) {
+            if (out2->enable) {
                 dacx3202_set_value(&dacx3202, DACX3202_DAC_0, convert_voltage_into_raw_dac(out2->voltage, OUT_2));
-                if (out2->type == DC) {
-                    set_rtos_pin(SW1_Port, SW1_Pin, 1);
-                } else {
-                }
+                set_rtos_pin(SW1_Port, SW1_Pin, 1);
             }
             set_rtos_pin(LED_Port, LED_Pin, 1);
             break;
         case POWER_ON_HAND:
-            if (out1->handswitch) {
+            if (out1->enable) {
                 dacx3202_set_value(&dacx3202, DACX3202_DAC_1, convert_voltage_into_raw_dac(out1->voltage, OUT_1));
-                if (out1->type == DC) {
-                    set_rtos_pin(SW2_Port, SW2_Pin, 1);
-                } else {
-                }
+                set_rtos_pin(SW2_Port, SW2_Pin, 1);
             }
-            if (out2->handswitch) {
+            if (out2->enable) {
                 dacx3202_set_value(&dacx3202, DACX3202_DAC_0, convert_voltage_into_raw_dac(out2->voltage, OUT_2));
-                if (out2->type == DC) {
-                    set_rtos_pin(SW1_Port, SW1_Pin, 1);
-                } else {
-                }
+                set_rtos_pin(SW1_Port, SW1_Pin, 1);
             }
             set_rtos_pin(LED_Port, LED_Pin, 1);
             break;

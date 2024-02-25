@@ -26,7 +26,11 @@ QueueHandle_t output_config_queue = NULL;
  * @return int 
  */
 int main(void) {
+    int i = 0;
     configure_mcu();
+
+    for (i = 0; i < 800000; i++)	/* Wait a bit. */
+			__asm__("nop");
 
     gpiob_sem_handle = xSemaphoreCreateBinary();
     if (gpiob_sem_handle == NULL)

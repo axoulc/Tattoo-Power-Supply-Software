@@ -19,14 +19,13 @@
 #define BLINK_DELAY 500
 #define BLINK_COUNTER (BLINK_DELAY / DELAY_DISPLAY_LOOP_MS)
 
+#define ON_STRING "ON"
+#define OFF_STRING "OFF"
+
 typedef struct {
     output_t output;
     uint16_t voltage;
-    supply_type_t type;
-    bool footswitch;
-    bool handswitch;
-
-    bool is_set_selected;
+    bool enable;
     uint16_t x_offset;
 } output_data_t;
 
@@ -46,27 +45,21 @@ typedef struct {
 typedef enum {
     DISPLAY_INIT,
     DISPLAY_MAIN,
-    DISPLAY_SET_CONFIG,
     DISPLAY_TATTOO
 } display_state_t;
 
 typedef enum {
-    CONFIG_VOLTAGE = 0,
-    CONFIG_TYPE,
-    CONFIG_FOOTSWITCH,
-    CONFIG_HANDSWITCH,
-    CONFIG_SAVE,
-    CONFIG_EXIT
+    CONFIG_VOLTAGE1 = 0,
+    CONFIG_EN1,
+    CONFIG_VOLTAGE2,
+    CONFIG_EN2
 } config_idx_t;
 
 typedef struct {
     uint8_t current_pdo;
     display_state_t current_state;
     bool is_redraw;
-    bool selected;
-    output_t selected_output;
     config_idx_t cursor_idx;
-    output_data_t settings;
     bool logo_blink;
     uint8_t logo_blink_counter;
 } config_t;

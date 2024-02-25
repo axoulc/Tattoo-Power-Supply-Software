@@ -14,18 +14,16 @@ void handle_event_display(encoder_t *encoder);
 
 void draw_display(config_t *current_config, u8g2_t *u8g2, output_data_t *out1, output_data_t *out2);
 void draw_main(config_t *current_config, u8g2_t *u8g2, output_data_t *out1, output_data_t *out2);
-void draw_set_config(config_t *current_config, u8g2_t *u8g2);
 void draw_tattoo(config_t *current_config, u8g2_t *u8g2);
 
 void handle_action_display(config_t *current_config, encoder_t *encoder, output_data_t *out1, output_data_t *out2);
 void handle_action_main(config_t *current_config, encoder_t *encoder, output_data_t *out1, output_data_t *out2);
-void handle_action_set_config(config_t *current_config, encoder_t *encoder, output_data_t *out1, output_data_t *out2);
 void handle_action_tattoo(config_t *current_config);
 
 void draw_text(u8g2_t *u8g2, uint8_t x, uint8_t y, uint8_t is_selected, const char *text);
 void draw_button(u8g2_t *u8g2, uint8_t x, uint8_t y, uint8_t is_selected, const char *label);
 void draw_checkbox(u8g2_t *u8g2, uint8_t x, uint8_t y, uint8_t w, uint8_t is_checked);
-void draw_pane(u8g2_t *u8g2, output_data_t *data);
+void draw_pane(u8g2_t *u8g2, output_data_t *data, config_t *current_config);
 
 uint16_t read_voltage(output_t output);
 
@@ -45,19 +43,13 @@ void display_task(void *pvParameters) {
     output_data_t out1 = {
         .output = OUT_1,
         .voltage = 20,
-        .type = DC,
-        .footswitch = true,
-        .handswitch = true,
-        .is_set_selected = true,
+        .enable = true,
         .x_offset = 0};
 
     output_data_t out2 = {
         .output = OUT_2,
         .voltage = 20,
-        .type = DC,
-        .footswitch = true,
-        .handswitch = true,
-        .is_set_selected = false,
+        .enable = false,
         .x_offset = DISPLAY_WIDTH / 2};
 
     encoder_t encoder = {
@@ -69,15 +61,13 @@ void display_task(void *pvParameters) {
         .current_pdo = 15,
         .current_state = DISPLAY_MAIN,
         .is_redraw = true,
-        .selected = false,
-        .cursor_idx = CONFIG_VOLTAGE,
+        .cursor_idx = CONFIG_VOLTAGE1,
         .logo_blink = false,
         .logo_blink_counter = 0};
 
     power_state_t power_state = POWER_OFF;
 
     u8g2_t u8g2_i, *u8g2 = &u8g2_i;
-
 
     u8g2_Setup_sh1106_128x64_noname_1(u8g2, U8G2_R0, u8x8_byte_4wire_hw_spi_stm32, u8x8_gpio_and_delay_stm32);
     u8g2_InitDisplay(u8g2);
@@ -217,9 +207,6 @@ void draw_display(config_t *current_config, u8g2_t *u8g2, output_data_t *out1, o
         case DISPLAY_MAIN:
             draw_main(current_config, u8g2, out1, out2);
             break;
-        case DISPLAY_SET_CONFIG:
-            draw_set_config(current_config, u8g2);
-            break;
         case DISPLAY_TATTOO:
             draw_tattoo(current_config, u8g2);
             break;
@@ -249,44 +236,8 @@ void draw_main(config_t *current_config, u8g2_t *u8g2, output_data_t *out1, outp
 
         u8g2_DrawStr(u8g2, 106, TOP_BOX_HEIGHT - 2, buffer);
 
-        draw_pane(u8g2, out1);
-        draw_pane(u8g2, out2);
-    } while (u8g2_NextPage(u8g2));
-}
-
-/**
- * @brief Draw the set config screen
- *
- * @param current_config
- * @param u8g2
- * @param out1
- * @param out2
- */
-void draw_set_config(config_t *current_config, u8g2_t *u8g2) {
-    static char buffer[20];
-    sprintf(buffer, "Config %s", current_config->selected_output == OUT_1 ? "OUT 1" : "OUT 2");
-    u8g2_FirstPage(u8g2);
-    do {
-        u8g2_SetFont(u8g2, u8g2_font_helvR08_tr);
-        u8g2_DrawFrame(u8g2, 0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
-        u8g2_DrawHLine(u8g2, 0, TOP_BOX_HEIGHT, DISPLAY_WIDTH);
-        u8g2_DrawStr(u8g2, 32, TOP_BOX_HEIGHT - 2, buffer);
-
-        sprintf(buffer, "%d.%dV", current_config->settings.voltage / 10, current_config->settings.voltage % 10);
-        u8g2_DrawStr(u8g2, 4, 25, "Voltage :");
-        draw_text(u8g2, 48, 25, current_config->cursor_idx == CONFIG_VOLTAGE, buffer);
-
-        u8g2_DrawStr(u8g2, 75, 25, "Type :");
-        draw_text(u8g2, 105, 25, current_config->cursor_idx == CONFIG_TYPE, current_config->settings.type == DC ? "DC" : "AC");
-
-        draw_checkbox(u8g2, 15, 42, 10, current_config->settings.footswitch);
-        draw_text(u8g2, 25, 41, current_config->cursor_idx == CONFIG_FOOTSWITCH, "Foot");
-
-        draw_checkbox(u8g2, 70, 42, 10, current_config->settings.handswitch);
-        draw_text(u8g2, 80, 41, current_config->cursor_idx == CONFIG_HANDSWITCH, "Hand");
-
-        draw_button(u8g2, 20, 48, current_config->cursor_idx == CONFIG_SAVE, " Save ");
-        draw_button(u8g2, 80, 48, current_config->cursor_idx == CONFIG_EXIT, " Exit ");
+        draw_pane(u8g2, out1, current_config);
+        draw_pane(u8g2, out2, current_config);
     } while (u8g2_NextPage(u8g2));
 }
 
@@ -337,9 +288,6 @@ void handle_action_display(config_t *current_config, encoder_t *encoder, output_
         case DISPLAY_MAIN:
             handle_action_main(current_config, encoder, out1, out2);
             break;
-        case DISPLAY_SET_CONFIG:
-            handle_action_set_config(current_config, encoder, out1, out2);
-            break;
         case DISPLAY_TATTOO:
             handle_action_tattoo(current_config);
             break;
@@ -359,118 +307,67 @@ void handle_action_display(config_t *current_config, encoder_t *encoder, output_
 void handle_action_main(config_t *current_config, encoder_t *encoder, output_data_t *out1, output_data_t *out2) {
     switch (encoder->event) {
         case EVENT_SELECT:
-            if (out1->is_set_selected) {
-                out1->is_set_selected = false;
-                out2->is_set_selected = true;
+            if (current_config->cursor_idx == CONFIG_EN2) {
+                current_config->cursor_idx = CONFIG_VOLTAGE1;
             } else {
-                out1->is_set_selected = true;
-                out2->is_set_selected = false;
+                current_config->cursor_idx++;
             }
             encoder->event = EVENT_NONE;
             current_config->is_redraw = true;
 
             break;
         case EVENT_NEXT:
-            if (out1->is_set_selected && out1->voltage < MAX_VOLTAGE) {
-                out1->voltage++;
-                xQueueSend(output_config_queue, out1, 0);
-            } else if (out2->voltage < MAX_VOLTAGE) {
-                out2->voltage++;
-                xQueueSend(output_config_queue, out2, 0);
+            switch (current_config->cursor_idx) {
+                case CONFIG_VOLTAGE1:
+                    if (out1->voltage < MAX_VOLTAGE) {
+                        out1->voltage++;
+                        xQueueSend(output_config_queue, out1, 0);
+                    }
+                    break;
+                case CONFIG_EN1:
+                    out1->enable = !out1->enable;
+                    xQueueSend(output_config_queue, out1, 0);
+                    break;
+                case CONFIG_VOLTAGE2:
+                    if (out2->voltage < MAX_VOLTAGE) {
+                        out2->voltage++;
+                        xQueueSend(output_config_queue, out2, 0);
+                    }
+                    break;
+                case CONFIG_EN2:
+                    out2->enable = !out2->enable;
+                    xQueueSend(output_config_queue, out2, 0);
+                    break;                    
             }
             current_config->is_redraw = true;
             encoder->event = EVENT_NONE;
             break;
         case EVENT_PREV:
-            if (out1->is_set_selected && out1->voltage > MIN_VOLTAGE) {
-                out1->voltage--;
-                xQueueSend(output_config_queue, out1, 0);
-            } else if (out2->voltage > MIN_VOLTAGE) {
-                out2->voltage--;
-                xQueueSend(output_config_queue, out2, 0);
+            switch (current_config->cursor_idx) {
+                case CONFIG_VOLTAGE1:
+                    if (out1->voltage > MIN_VOLTAGE) {
+                        out1->voltage--;
+                        xQueueSend(output_config_queue, out1, 0);
+                    }
+                    break;
+                case CONFIG_EN1:
+                    out1->enable = !out1->enable;
+                    xQueueSend(output_config_queue, out1, 0);
+                    break;
+                case CONFIG_VOLTAGE2:
+                    if (out2->voltage > MIN_VOLTAGE) {
+                        out2->voltage--;
+                        xQueueSend(output_config_queue, out2, 0);
+                    }
+                    break;
+                case CONFIG_EN2:
+                    out2->enable = !out2->enable;
+                    xQueueSend(output_config_queue, out2, 0);
+                    break;                    
             }
             current_config->is_redraw = true;
             encoder->event = EVENT_NONE;
             
-            break;
-    }
-}
-
-/**
- * @brief Handle action for set config
- *
- * @param current_config
- * @param encoder
- * @param out1
- * @param out2
- */
-void handle_action_set_config(config_t *current_config, encoder_t *encoder, output_data_t *out1, output_data_t *out2) {
-    switch (encoder->event) {
-        case EVENT_SELECT:
-            switch (current_config->cursor_idx) {
-                case CONFIG_VOLTAGE:
-                    current_config->selected = !current_config->selected;
-                    encoder->event = EVENT_NONE;
-                    current_config->is_redraw = true;
-                    break;
-                case CONFIG_TYPE:
-                    current_config->settings.type = current_config->settings.type == DC ? PULSE : DC;
-                    encoder->event = EVENT_NONE;
-                    current_config->is_redraw = true;
-                    break;
-                case CONFIG_FOOTSWITCH:
-                    current_config->settings.footswitch = !current_config->settings.footswitch;
-                    encoder->event = EVENT_NONE;
-                    current_config->is_redraw = true;
-                    break;
-                case CONFIG_HANDSWITCH:
-                    current_config->settings.handswitch = !current_config->settings.handswitch;
-                    encoder->event = EVENT_NONE;
-                    current_config->is_redraw = true;
-                    break;
-                case CONFIG_SAVE:
-                    memcpy(current_config->selected_output == OUT_1 ? out1 : out2, &current_config->settings, sizeof(output_data_t));
-                    xQueueSend(output_config_queue, &current_config->settings, 0);
-                    current_config->current_state = DISPLAY_MAIN;
-                    current_config->cursor_idx = CONFIG_VOLTAGE;
-                    encoder->event = EVENT_NONE;
-                    current_config->is_redraw = true;
-                    break;
-                case CONFIG_EXIT:
-                    current_config->current_state = DISPLAY_MAIN;
-                    current_config->cursor_idx = CONFIG_VOLTAGE;
-                    encoder->event = EVENT_NONE;
-                    current_config->is_redraw = true;
-                    break;
-            }
-            break;
-        case EVENT_NEXT:
-            if (current_config->selected) {
-                if (current_config->settings.voltage < MAX_VOLTAGE) {
-                    current_config->settings.voltage++;
-                    current_config->is_redraw = true;
-                }
-            } else {
-                if (current_config->cursor_idx < MAX_CONFIG_IDX) {
-                    current_config->cursor_idx++;
-                    current_config->is_redraw = true;
-                }
-            }
-            encoder->event = EVENT_NONE;
-            break;
-        case EVENT_PREV:
-            if (current_config->selected) {
-                if (current_config->settings.voltage > MIN_VOLTAGE) {
-                    current_config->settings.voltage--;
-                    current_config->is_redraw = true;
-                }
-            } else {
-                if (current_config->cursor_idx > 0) {
-                    current_config->cursor_idx--;
-                    current_config->is_redraw = true;
-                }
-            }
-            encoder->event = EVENT_NONE;
             break;
     }
 }
@@ -544,12 +441,21 @@ void draw_checkbox(u8g2_t *u8g2, uint8_t x, uint8_t y, uint8_t w, uint8_t is_che
  *
  * @param u8g2
  * @param data
+ * @param current_config
  */
-void draw_pane(u8g2_t *u8g2, output_data_t *data) {
+void draw_pane(u8g2_t *u8g2, output_data_t *data, config_t *current_config) {
     static char buf[10];
     sprintf(buf, "%d.%dV", data->voltage / 10, data->voltage % 10);
     u8g2_SetFont(u8g2, u8g2_font_helvR14_tr);
-    draw_text(u8g2, 14 + data->x_offset, 45, data->is_set_selected, buf);
+    if (data->output == OUT_1) {
+        draw_text(u8g2, 14 + data->x_offset, 35, current_config->cursor_idx == CONFIG_VOLTAGE1 ? true : false, buf);
+        u8g2_SetFont(u8g2, u8g2_font_helvR08_tr);
+        draw_text(u8g2, (data->enable ? 25 : 22) + data->x_offset, 55, current_config->cursor_idx == CONFIG_EN1 ? true : false, data->enable ? ON_STRING : OFF_STRING);
+    } else {
+        draw_text(u8g2, 14 + data->x_offset, 35, current_config->cursor_idx == CONFIG_VOLTAGE2 ? true : false, buf);
+        u8g2_SetFont(u8g2, u8g2_font_helvR08_tr);
+        draw_text(u8g2, (data->enable ? 25 : 22) + data->x_offset, 55, current_config->cursor_idx == CONFIG_EN2 ? true : false, data->enable ? ON_STRING : OFF_STRING);
+    }
 }
 
 /**
